@@ -29,7 +29,7 @@ pub fn emit_enum(e: &Enum) -> syn::Result<TokenStream> {
         common_generics.params.push(syn::parse2(quote!(S)).unwrap());
         span_ty = quote!(S);
         common_generics.make_where_clause().predicates.push(
-            syn::parse2(quote!(S: ::knuffel::traits::ErrorSpan)).unwrap());
+            syn::parse2(quote!(S: ::knus::traits::ErrorSpan)).unwrap());
     };
     let trait_gen = quote!(<#span_ty>);
     let (impl_gen, _, bounds) = common_generics.split_for_impl();
@@ -42,12 +42,12 @@ pub fn emit_enum(e: &Enum) -> syn::Result<TokenStream> {
 
     let decode = decode(&common, &node)?;
     Ok(quote! {
-        impl #impl_gen ::knuffel::Decode #trait_gen for #name #type_gen
+        impl #impl_gen ::knus::Decode #trait_gen for #name #type_gen
             #bounds
         {
-            fn decode_node(#node: &::knuffel::ast::SpannedNode<#span_ty>,
-                           #ctx: &mut ::knuffel::decode::Context<#span_ty>)
-                -> Result<Self, ::knuffel::errors::DecodeError<#span_ty>>
+            fn decode_node(#node: &::knus::ast::SpannedNode<#span_ty>,
+                           #ctx: &mut ::knus::decode::Context<#span_ty>)
+                -> Result<Self, ::knus::errors::DecodeError<#span_ty>>
             {
                 #decode
             }
@@ -68,13 +68,13 @@ fn decode(e: &Common, node: &syn::Ident) -> syn::Result<TokenStream> {
                     #name => {
                         for arg in &#node.arguments {
                             #ctx.emit_error(
-                                ::knuffel::errors::DecodeError::unexpected(
+                                ::knus::errors::DecodeError::unexpected(
                                     &arg.literal, "argument",
                                     "unexpected argument"));
                         }
                         for (name, _) in &#node.properties {
                             #ctx.emit_error(
-                                ::knuffel::errors::DecodeError::unexpected(
+                                ::knus::errors::DecodeError::unexpected(
                                     name, "property",
                                     format!("unexpected property `{}`",
                                             name.escape_default())));
@@ -82,7 +82,7 @@ fn decode(e: &Common, node: &syn::Ident) -> syn::Result<TokenStream> {
                         if let Some(children) = &#node.children {
                             for child in children.iter() {
                                 #ctx.emit_error(
-                                    ::knuffel::errors::DecodeError::unexpected(
+                                    ::knus::errors::DecodeError::unexpected(
                                         child, "node",
                                         format!("unexpected node `{}`",
                                             child.node_name.escape_default())
@@ -95,7 +95,7 @@ fn decode(e: &Common, node: &syn::Ident) -> syn::Result<TokenStream> {
             }
             VariantKind::Nested { option: false } => {
                 branches.push(quote! {
-                    #name => ::knuffel::Decode::decode_node(#node, #ctx)
+                    #name => ::knus::Decode::decode_node(#node, #ctx)
                         .map(#enum_name::#variant_name),
                 });
             }
@@ -106,7 +106,7 @@ fn decode(e: &Common, node: &syn::Ident) -> syn::Result<TokenStream> {
                             #node.properties.len() > 0 ||
                             #node.children.is_some()
                         {
-                            ::knuffel::Decode::decode_node(#node, #ctx)
+                            ::knus::Decode::decode_node(#node, #ctx)
                                 .map(Some)
                                 .map(#enum_name::#variant_name)
                         } else {
@@ -151,7 +151,7 @@ fn decode(e: &Common, node: &syn::Ident) -> syn::Result<TokenStream> {
         match &**#node.node_name {
             #(#branches)*
             name_str => {
-                Err(::knuffel::errors::DecodeError::conversion(
+                Err(::knus::errors::DecodeError::conversion(
                         &#node.node_name, #err))
             }
         }

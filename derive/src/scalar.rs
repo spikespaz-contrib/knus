@@ -98,40 +98,40 @@ pub fn emit_enum(e: &Enum) -> syn::Result<TokenStream> {
             quote!(#name => Ok(#e_name::#ident))
         });
     Ok(quote! {
-        impl<S: ::knuffel::traits::ErrorSpan> ::knuffel::DecodeScalar<S>
+        impl<S: ::knus::traits::ErrorSpan> ::knus::DecodeScalar<S>
                 for #e_name {
-            fn raw_decode(val: &::knuffel::span::Spanned<
-                          ::knuffel::ast::Literal, S>,
-                          ctx: &mut ::knuffel::decode::Context<S>)
-                -> Result<#e_name, ::knuffel::errors::DecodeError<S>>
+            fn raw_decode(val: &::knus::span::Spanned<
+                          ::knus::ast::Literal, S>,
+                          ctx: &mut ::knus::decode::Context<S>)
+                -> Result<#e_name, ::knus::errors::DecodeError<S>>
             {
                 match &**val {
-                    ::knuffel::ast::Literal::String(ref s) => {
+                    ::knus::ast::Literal::String(ref s) => {
                         match &s[..] {
                             #(#match_branches,)*
                             _ => {
-                                Err(::knuffel::errors::DecodeError::conversion(
+                                Err(::knus::errors::DecodeError::conversion(
                                         val, #value_err))
                             }
                         }
                     }
                     _ => {
-                        Err(::knuffel::errors::DecodeError::scalar_kind(
-                            ::knuffel::decode::Kind::String,
+                        Err(::knus::errors::DecodeError::scalar_kind(
+                            ::knus::decode::Kind::String,
                             &val,
                         ))
                     }
                 }
             }
-            fn type_check(type_name: &Option<::knuffel::span::Spanned<
-                          ::knuffel::ast::TypeName, S>>,
-                          ctx: &mut ::knuffel::decode::Context<S>)
+            fn type_check(type_name: &Option<::knus::span::Spanned<
+                          ::knus::ast::TypeName, S>>,
+                          ctx: &mut ::knus::decode::Context<S>)
             {
                 if let Some(typ) = type_name {
-                    ctx.emit_error(::knuffel::errors::DecodeError::TypeName {
+                    ctx.emit_error(::knus::errors::DecodeError::TypeName {
                         span: typ.span().clone(),
                         found: Some((**typ).clone()),
-                        expected: ::knuffel::errors::ExpectedType::no_type(),
+                        expected: ::knus::errors::ExpectedType::no_type(),
                         rust_type: stringify!(#e_name),
                     });
                 }

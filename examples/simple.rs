@@ -3,23 +3,23 @@ use std::io::Read;
 use miette::IntoDiagnostic;
 
 
-#[derive(knuffel::Decode, Debug)]
+#[derive(knus::Decode, Debug)]
 #[allow(dead_code)]
 struct Plugin {
-    #[knuffel(argument)]
+    #[knus(argument)]
     name: String,
-    #[knuffel(property)]
+    #[knus(property)]
     url: String,
-    #[knuffel(child, unwrap(argument))]
+    #[knus(child, unwrap(argument))]
     version: String,
 }
 
-#[derive(knuffel::Decode, Debug)]
+#[derive(knus::Decode, Debug)]
 #[allow(dead_code)]
 struct Config {
-    #[knuffel(child, unwrap(argument))]
+    #[knus(child, unwrap(argument))]
     version: String,
-    #[knuffel(children(name="plugin"))]
+    #[knus(children(name="plugin"))]
     plugins: Vec<Plugin>,
 }
 
@@ -27,7 +27,7 @@ fn main() -> miette::Result<()> {
     let mut buf = String::new();
     println!("Please type KDL document, press Return, Ctrl+D to finish");
     std::io::stdin().read_to_string(&mut buf).into_diagnostic()?;
-    let cfg: Config = knuffel::parse("<stdin>", &buf)?;
+    let cfg: Config = knus::parse("<stdin>", &buf)?;
     println!("{:#?}", cfg);
     Ok(())
 }

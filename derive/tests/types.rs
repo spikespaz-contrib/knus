@@ -1,25 +1,25 @@
 use std::path::PathBuf;
 
-use knuffel::{span::Span};
-use knuffel::traits::DecodeChildren;
+use knus::{span::Span};
+use knus::traits::DecodeChildren;
 
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct Scalars {
-    #[knuffel(child, unwrap(argument))]
+    #[knus(child, unwrap(argument))]
     str: String,
-    #[knuffel(child, unwrap(argument))]
+    #[knus(child, unwrap(argument))]
     u64: u64,
-    #[knuffel(child, unwrap(argument))]
+    #[knus(child, unwrap(argument))]
     f64: f64,
-    #[knuffel(child, unwrap(argument))]
+    #[knus(child, unwrap(argument))]
     path: PathBuf,
-    #[knuffel(child, unwrap(argument))]
+    #[knus(child, unwrap(argument))]
     boolean: bool,
 }
 
 fn parse<T: DecodeChildren<Span>>(text: &str) -> T {
-    knuffel::parse("<test>", text).unwrap()
+    knus::parse("<test>", text).unwrap()
 }
 
 

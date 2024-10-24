@@ -36,30 +36,30 @@ intersections for the arrows)
 
 Most common usage of this library is using `derive` and [parse] function:
 ```rust
-#[derive(knuffel::Decode)]
+#[derive(knus::Decode)]
 enum TopLevelNode {
     Route(Route),
     Plugin(Plugin),
 }
 
-#[derive(knuffel::Decode)]
+#[derive(knus::Decode)]
 struct Route {
-    #[knuffel(argument)]
+    #[knus(argument)]
     path: String,
-    #[knuffel(children(name="route"))]
+    #[knus(children(name="route"))]
     subroutes: Vec<Route>,
 }
 
-#[derive(knuffel::Decode)]
+#[derive(knus::Decode)]
 struct Plugin {
-    #[knuffel(argument)]
+    #[knus(argument)]
     name: String,
-    #[knuffel(property)]
+    #[knus(property)]
     url: String,
 }
 
 # fn main() -> miette::Result<()> {
-let config = knuffel::parse::<Vec<TopLevelNode>>("example.kdl", r#"
+let config = knus::parse::<Vec<TopLevelNode>>("example.kdl", r#"
     route "/api" {
         route "/api/v1"
     }
@@ -71,13 +71,13 @@ let config = knuffel::parse::<Vec<TopLevelNode>>("example.kdl", r#"
 
 This parses into a vector of nodes as enums `TopLevelNode`, but you also use some node as a root of the document if there is no properties and arguments declared:
 ```rust,ignore
-#[derive(knuffel::Decode)]
+#[derive(knus::Decode)]
 struct Document {
-    #[knuffel(child, unwrap(argument))]
+    #[knus(child, unwrap(argument))]
     version: Option<String>,
-    #[knuffel(children(name="route"))]
+    #[knus(children(name="route"))]
     routes: Vec<Route>,
-    #[knuffel(children(name="plugin"))]
+    #[knus(children(name="plugin"))]
     plugins: Vec<Plugin>,
 }
 
@@ -120,11 +120,11 @@ miette = { version="4.3.0", features=["fancy"] }
 And the error returned from parser should be converted to [miette::Report] and
 printed with debugging handler. The most manual way to do that is:
 ```rust
-# #[derive(knuffel::Decode, Debug)]
+# #[derive(knus::Decode, Debug)]
 # struct Config {}
 # let file_name = "1.kdl";
 # let text = "";
-let config = match knuffel::parse::<Config>(file_name, text) {
+let config = match knus::parse::<Config>(file_name, text) {
     Ok(config) => config,
     Err(e) => {
          println!("{:?}", miette::Report::new(e));
@@ -135,14 +135,14 @@ let config = match knuffel::parse::<Config>(file_name, text) {
 But usually function that returns `miette::Result` is good enough:
 ```rust,no_run
 # use std::fs;
-# #[derive(knuffel::Decode)]
+# #[derive(knus::Decode)]
 # struct Config {}
 use miette::{IntoDiagnostic, Context};
 
 fn parse_config(path: &str) -> miette::Result<Config> {
     let text = fs::read_to_string(path).into_diagnostic()
         .wrap_err_with(|| format!("cannot read {:?}", path))?;
-    Ok(knuffel::parse(path, &text)?)
+    Ok(knus::parse(path, &text)?)
 }
 fn main() -> miette::Result<()> {
     let config = parse_config("my.kdl")?;

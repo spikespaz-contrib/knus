@@ -1,37 +1,37 @@
-use knuffel::span::Span;
-use knuffel::traits::Decode;
-use knuffel::ast::{TypeName, BuiltinType};
+use knus::span::Span;
+use knus::traits::Decode;
+use knus::ast::{TypeName, BuiltinType};
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct Child;
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
-#[knuffel(span_type=Span)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
+#[knus(span_type=Span)]
 struct NodeSpan {
-    #[knuffel(span)]
+    #[knus(span)]
     span: Span,
-    #[knuffel(argument)]
+    #[knus(argument)]
     name: String,
-    #[knuffel(children)]
+    #[knus(children)]
     children: Vec<Child>,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct NodeType {
-    #[knuffel(type_name)]
+    #[knus(type_name)]
     type_name: String,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct NameAndType {
-    #[knuffel(node_name)]
+    #[knus(node_name)]
     node_name: String,
-    #[knuffel(type_name)]
+    #[knus(type_name)]
     type_name: Option<TypeName>,
 }
 
 fn parse<T: Decode<Span>>(text: &str) -> T {
-    let mut nodes: Vec<T> = knuffel::parse("<test>", text).unwrap();
+    let mut nodes: Vec<T> = knus::parse("<test>", text).unwrap();
     assert_eq!(nodes.len(), 1);
     nodes.remove(0)
 }

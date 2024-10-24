@@ -1,9 +1,9 @@
 This is derive implementation to make working with [KDL](https://kdl.dev) file
-format convenient that works with [knuffel] parser library.
+format convenient that works with [knus] parser library.
 
-See more in the documentation of [knuffel] library itself.
+See more in the documentation of [knus] library itself.
 
-[knuffel]: https://docs.rs/knuffel
+[knus]: https://docs.rs/knus
 
 
 License

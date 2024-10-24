@@ -1,31 +1,31 @@
 use std::fmt;
 
-use knuffel::{Decode};
-use knuffel::span::Span;
+use knus::{Decode};
+use knus::span::Span;
 use miette::Diagnostic;
 
 
-#[derive(knuffel::DecodeScalar, Debug, PartialEq)]
+#[derive(knus::DecodeScalar, Debug, PartialEq)]
 enum SomeScalar {
     First,
     AnotherOption,
 }
 
-#[derive(knuffel::Decode, Debug, PartialEq)]
+#[derive(knus::Decode, Debug, PartialEq)]
 struct Item {
-    #[knuffel(argument)]
+    #[knus(argument)]
     value: SomeScalar,
 }
 
 
 fn parse<T: Decode<Span>>(text: &str) -> T {
-    let mut nodes: Vec<T> = knuffel::parse("<test>", text).unwrap();
+    let mut nodes: Vec<T> = knus::parse("<test>", text).unwrap();
     assert_eq!(nodes.len(), 1);
     nodes.remove(0)
 }
 
 fn parse_err<T: Decode<Span>+fmt::Debug>(text: &str) -> String {
-    let err = knuffel::parse::<Vec<T>>("<test>", text).unwrap_err();
+    let err = knus::parse::<Vec<T>>("<test>", text).unwrap_err();
     err.related().unwrap()
         .map(|e| e.to_string()).collect::<Vec<_>>()
         .join("\n")

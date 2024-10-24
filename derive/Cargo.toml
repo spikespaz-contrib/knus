@@ -1,14 +1,14 @@
 [package]
-name = "knuffel-derive"
+name = "knus-derive"
 version = "3.2.0"
 edition = "2021"
 description = """
-    A derive implementation for knuffel KDL parser
+    A derive implementation for knus KDL parser
 """
 license = "MIT/Apache-2.0"
 keywords = ["kdl", "configuration"]
-homepage = "https://github.com/tailhook/knuffel"
-documentation = "https://docs.rs/knuffel"
+homepage = "https://github.com/TheLostLambda/knus"
+documentation = "https://docs.rs/knus"
 readme = "README.md"
 
 [lib]
@@ -22,5 +22,5 @@ proc-macro2 = "1.0.32"
 proc-macro-error = "1.0.4"
 
 [dev-dependencies]
-knuffel = { path=".." }
+knus = { path=".." }
 miette = { version="5.1.1", features=["fancy"] }

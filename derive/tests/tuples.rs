@@ -2,38 +2,38 @@ use std::fmt;
 
 use miette::Diagnostic;
 
-use knuffel::{Decode, span::Span};
+use knus::{Decode, span::Span};
 
 
 #[derive(Debug, Decode, PartialEq)]
 struct Unit;
 
 #[derive(Debug, Decode, PartialEq)]
-struct Arg(#[knuffel(argument)] u32);
+struct Arg(#[knus(argument)] u32);
 
 #[derive(Debug, Decode, PartialEq)]
 struct Opt(Option<Arg>);
 
 #[derive(Debug, Decode, PartialEq)]
-struct Extra(#[knuffel(argument)] Option<String>, u32);
+struct Extra(#[knus(argument)] Option<String>, u32);
 
 #[derive(Debug, Decode, PartialEq)]
 enum Enum {
     Unit,
-    Arg(#[knuffel(argument)] u32),
+    Arg(#[knus(argument)] u32),
     Opt(Option<Arg>),
-    Extra(#[knuffel(argument)] Option<String>, u32),
+    Extra(#[knus(argument)] Option<String>, u32),
 }
 
 
 fn parse<T: Decode<Span>>(text: &str) -> T {
-    let mut nodes: Vec<T> = knuffel::parse("<test>", text).unwrap();
+    let mut nodes: Vec<T> = knus::parse("<test>", text).unwrap();
     assert_eq!(nodes.len(), 1);
     nodes.remove(0)
 }
 
 fn parse_err<T: Decode<Span>+fmt::Debug>(text: &str) -> String {
-    let err = knuffel::parse::<Vec<T>>("<test>", text).unwrap_err();
+    let err = knus::parse::<Vec<T>>("<test>", text).unwrap_err();
     err.related().unwrap()
         .map(|e| e.to_string()).collect::<Vec<_>>()
         .join("\n")

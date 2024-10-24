@@ -29,8 +29,8 @@ pub trait DecodeChildren<S: ErrorSpan>: Sized {
 /// The trait is implemented for structures that can be used as part of other
 /// structs
 ///
-/// The type of field that `#[knuffel(flatten)]` is used for should implement
-/// this trait. It is automatically implemented by `#[derive(knuffel::Decode)]`
+/// The type of field that `#[knus(flatten)]` is used for should implement
+/// this trait. It is automatically implemented by `#[derive(knus::Decode)]`
 /// by structures that have only optional properties and children (no
 /// arguments).
 pub trait DecodePartial<S: ErrorSpan>: Sized {

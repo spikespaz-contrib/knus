@@ -4,219 +4,219 @@ use std::default::Default;
 
 use miette::Diagnostic;
 
-use knuffel::{Decode, span::Span};
-use knuffel::traits::DecodeChildren;
+use knus::{Decode, span::Span};
+use knus::traits::DecodeChildren;
 
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct Arg1 {
-    #[knuffel(argument)]
+    #[knus(argument)]
     name: String,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct Arg1RawIdent {
-    #[knuffel(argument)]
+    #[knus(argument)]
     r#type: String,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct ArgDef {
-    #[knuffel(argument, default)]
+    #[knus(argument, default)]
     name: String,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct ArgDefValue {
-    #[knuffel(argument, default="unnamed".into())]
+    #[knus(argument, default="unnamed".into())]
     name: String,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct ArgDefOptValue {
-    #[knuffel(argument, default=Some("unnamed".into()))]
+    #[knus(argument, default=Some("unnamed".into()))]
     name: Option<String>,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct OptArg {
-    #[knuffel(argument)]
+    #[knus(argument)]
     name: Option<String>,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct Extra {
     field: String,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct VarArg {
-    #[knuffel(arguments)]
+    #[knus(arguments)]
     params: Vec<u64>,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq, Default)]
+#[derive(knus_derive::Decode, Debug, PartialEq, Default)]
 struct Prop1 {
-    #[knuffel(property)]
+    #[knus(property)]
     label: String,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq, Default)]
+#[derive(knus_derive::Decode, Debug, PartialEq, Default)]
 struct Prop1RawIdent {
-    #[knuffel(property)]
+    #[knus(property)]
     r#type: String,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct PropDef {
-    #[knuffel(property, default)]
+    #[knus(property, default)]
     label: String,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct PropDefValue {
-    #[knuffel(property, default="unknown".into())]
+    #[knus(property, default="unknown".into())]
     label: String,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct PropDefOptValue {
-    #[knuffel(property, default=Some("unknown".into()))]
+    #[knus(property, default=Some("unknown".into()))]
     label: Option<String>,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct PropNamed {
-    #[knuffel(property(name="x"))]
+    #[knus(property(name="x"))]
     label: String,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct OptProp {
-    #[knuffel(property)]
+    #[knus(property)]
     label: Option<String>,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct VarProp {
-    #[knuffel(properties)]
+    #[knus(properties)]
     scores: BTreeMap<String, u64>,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct Children {
-    #[knuffel(children)]
+    #[knus(children)]
     children: Vec<Arg1>,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct FilteredChildren {
-    #[knuffel(children(name="left"))]
+    #[knus(children(name="left"))]
     left: Vec<OptArg>,
-    #[knuffel(children(name="right"))]
+    #[knus(children(name="right"))]
     right: Vec<OptArg>,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 enum Variant {
     Arg1(Arg1),
     Prop1(Prop1),
-    #[knuffel(skip)]
+    #[knus(skip)]
     #[allow(dead_code)]
     Var3(u32),
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct Child {
-    #[knuffel(child)]
+    #[knus(child)]
     main: Prop1,
-    #[knuffel(child)]
+    #[knus(child)]
     extra: Option<Prop1>,
-    #[knuffel(child)]
+    #[knus(child)]
     flag: bool,
-    #[knuffel(child)]
+    #[knus(child)]
     унікод: Option<Prop1>,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct ChildDef {
-    #[knuffel(child, default)]
+    #[knus(child, default)]
     main: Prop1,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct ChildDefValue {
-    #[knuffel(child, default=Prop1 { label: String::from("prop1") })]
+    #[knus(child, default=Prop1 { label: String::from("prop1") })]
     main: Prop1,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct Unwrap {
-    #[knuffel(child, unwrap(argument))]
+    #[knus(child, unwrap(argument))]
     label: String,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct UnwrapRawIdent {
-    #[knuffel(child, unwrap(argument))]
+    #[knus(child, unwrap(argument))]
     r#type: String,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct UnwrapFiltChildren {
-    #[knuffel(children(name="labels"), unwrap(arguments))]
+    #[knus(children(name="labels"), unwrap(arguments))]
     labels: Vec<Vec<String>>,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct UnwrapChildren {
-    #[knuffel(children, unwrap(arguments))]
+    #[knus(children, unwrap(arguments))]
     labels: Vec<Vec<String>>,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct Parse {
-    #[knuffel(child, unwrap(argument, str))]
+    #[knus(child, unwrap(argument, str))]
     listen: std::net::SocketAddr,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct ParseOpt {
-    #[knuffel(property, str)]
+    #[knus(property, str)]
     listen: Option<std::net::SocketAddr>,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct Bytes {
-    #[knuffel(child, unwrap(argument, bytes))]
+    #[knus(child, unwrap(argument, bytes))]
     data: Vec<u8>,
 }
 
-#[derive(knuffel_derive::Decode, Debug, PartialEq)]
+#[derive(knus_derive::Decode, Debug, PartialEq)]
 struct OptBytes {
-    #[knuffel(property, bytes)]
+    #[knus(property, bytes)]
     data: Option<Vec<u8>>,
 }
 
 fn parse<T: Decode<Span>>(text: &str) -> T {
-    let mut nodes: Vec<T> = knuffel::parse("<test>", text).unwrap();
+    let mut nodes: Vec<T> = knus::parse("<test>", text).unwrap();
     assert_eq!(nodes.len(), 1);
     nodes.remove(0)
 }
 
 fn parse_err<T: Decode<Span>+fmt::Debug>(text: &str) -> String {
-    let err = knuffel::parse::<Vec<T>>("<test>", text).unwrap_err();
+    let err = knus::parse::<Vec<T>>("<test>", text).unwrap_err();
     err.related().unwrap()
         .map(|e| e.to_string()).collect::<Vec<_>>()
         .join("\n")
 }
 
 fn parse_doc<T: DecodeChildren<Span>>(text: &str) -> T {
-    knuffel::parse("<test>", text).unwrap()
+    knus::parse("<test>", text).unwrap()
 }
 
 fn parse_doc_err<T: DecodeChildren<Span>+fmt::Debug>(text: &str) -> String {
-    let err = knuffel::parse::<T>("<test>", text).unwrap_err();
+    let err = knus::parse::<T>("<test>", text).unwrap_err();
     err.related().unwrap()
         .map(|e| e.to_string()).collect::<Vec<_>>()
         .join("\n")

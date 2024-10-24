@@ -4,7 +4,7 @@ Currently `DecodeScalar` derive is only implemented for enums
 
 Only enums that contain no data are supported:
 ```rust
-#[derive(knuffel::DecodeScalar)]
+#[derive(knus::DecodeScalar)]
 enum Color {
     Red,
     Blue,
@@ -15,11 +15,11 @@ enum Color {
 
 This will match scalar values in `kebab-case`. For example, this node decoder:
 ```
-# #[derive(knuffel::DecodeScalar)]
+# #[derive(knus::DecodeScalar)]
 # enum Color { Red, Blue, Green, InfraRed }
-#[derive(knuffel::Decode)]
+#[derive(knus::Decode)]
 struct Document {
-    #[knuffel(child, unwrap(arguments))]
+    #[knus(child, unwrap(arguments))]
     all_colors: Vec<Color>,
 }
 ```

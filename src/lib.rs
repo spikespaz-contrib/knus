@@ -15,7 +15,7 @@ pub mod span;
 pub mod traits;
 
 #[cfg(feature="derive")]
-pub use knuffel_derive::{Decode, DecodeScalar};
+pub use knus_derive::{Decode, DecodeScalar};
 
 pub use wrappers::{parse_ast, parse, parse_with_context};
 pub use traits::{Decode, DecodeScalar, DecodeChildren};
