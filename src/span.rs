@@ -1,4 +1,4 @@
-//! Knuffel supports to kinds of the span for parsing
+//! Knus can generate two types of span during parsing
 //!
 //! 1. [`Span`] which only tracks byte offset from the start of the source code
 //! 2. [`LineSpan`] which also track line numbers

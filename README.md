@@ -154,7 +154,9 @@ See [miette guide] for other ways of configuring error output.
 
 # The Name
 
-KDL is pronounced as cuddle. "Knuffel" means the same as cuddle in Dutch.
+KDL is pronounced as cuddle, and "knus" has a similar meaning in Danish. It
+also pays homage to `knuffel`, the repository this one was forked from, starts
+with a "K" like KDL, and is easy to remember and type.
 
 
 License
