@@ -1,10 +1,8 @@
 [target.aarch64-apple-darwin]
-linker = "rust-lld"
 rustflags = [
   "-C", "link-arg=-fuse-ld=lld",
 ]
 [target.x86_64-apple-darwin]
-linker = "rust-lld"
 rustflags = [
   "-C", "link-arg=-fuse-ld=lld",
 ]
