@@ -1,2 +1,2 @@
 [target.aarch64-apple-darwin]
-rustflags = ["-Zlinker-features=lld"]
+linker = "rust-lld"
