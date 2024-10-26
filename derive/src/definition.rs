@@ -23,7 +23,7 @@ pub enum VariantKind {
     Unit,
     Nested { option: bool },
     Tuple(Struct),
-    Named(Struct),
+    Named,
 }
 
 pub enum ArgKind {
@@ -211,9 +211,6 @@ pub struct StructBuilder {
 
 pub struct NewType {
     pub ident: syn::Ident,
-    pub trait_props: TraitProps,
-    pub generics: syn::Generics,
-    pub option: bool,
 }
 
 pub struct Variant {
@@ -309,13 +306,7 @@ impl Enum {
                 continue;
             }
             let kind = match var.fields {
-                syn::Fields::Named(n) => {
-                    Struct::new(var.ident.clone(),
-                                trait_props.clone(),
-                                generics.clone(),
-                                n.named.into_iter())
-                    .map(VariantKind::Named)?
-                }
+                syn::Fields::Named(_) => VariantKind::Named,
                 syn::Fields::Unnamed(u) => {
                     let tup = Struct::new(
                         var.ident.clone(),
@@ -657,9 +648,6 @@ impl Parse for Definition {
                     {
                         Ok(Definition::NewType(NewType {
                             ident: item.ident,
-                            trait_props,
-                            generics: item.generics,
-                            option: tup.extra_fields[0].option,
                         }))
                     } else {
                         Ok(Definition::TupleStruct(tup))
