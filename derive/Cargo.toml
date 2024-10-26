@@ -12,7 +12,7 @@ documentation = "https://docs.rs/knus"
 readme = "README.md"
 
 [lib]
-proc_macro = true
+proc-macro = true
 
 [dependencies]
 heck = {version="0.4.1", features=["unicode"]}

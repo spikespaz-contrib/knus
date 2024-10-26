@@ -52,10 +52,10 @@ pub fn parse_with_context<T, S, F>(file_name: &str, text: &str, set_ctx: F)
         }
         Ok(v) => return Ok(v)
     };
-    return Err(Error {
+    Err(Error {
         source_code: NamedSource::new(file_name, text.to_string()),
         errors: errors.into_iter().map(Into::into).collect(),
-    });
+    })
 }
 
 #[test]

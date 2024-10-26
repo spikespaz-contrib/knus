@@ -231,7 +231,7 @@ impl TraitProps {
         let mut props = TraitProps {
             span_type: None,
         };
-        for attr in mem::replace(attrs, Vec::new()) {
+        for attr in mem::take(attrs) {
             match attr.0 {
                 Attr::SpanType(ty) => {
                     props.span_type = Some(ty);
@@ -239,7 +239,7 @@ impl TraitProps {
                 _ => attrs.push(attr),
             }
         }
-        return props;
+        props
     }
 }
 
@@ -248,7 +248,7 @@ fn err_pair(s1: &Field, s2: &Field, t1: &str, t2: &str)
 {
     let mut err = syn::Error::new(s1.span, t1);
     err.combine(syn::Error::new(s2.span, t2));
-    return err;
+    err
 }
 
 fn is_option(ty: &syn::Type) -> bool {
@@ -575,7 +575,7 @@ impl StructBuilder {
                 });
             }
         }
-        return Ok(self);
+        Ok(self)
     }
 }
 
@@ -606,7 +606,7 @@ impl Struct {
         res.extend(self.children.iter().map(|c| &c.field));
         res.extend(self.var_children.iter().map(|c| &c.field));
         res.extend(self.extra_fields.iter().map(|f| &f.field));
-        return res;
+        res
     }
 }
 
@@ -726,7 +726,7 @@ impl FieldAttrs {
             if self.unwrap.is_some() {
                 emit_error!(span,
                     "decode modes are not supported on {}", element;
-                    hint= span.clone() => "try putting decode mode \
+                    hint= (*span) => "try putting decode mode \
                                           into unwrap(.., {})", mode;
                 );
             } else {
@@ -769,7 +769,7 @@ fn parse_attr_list(attrs: &[syn::Attribute]) -> Vec<(Attr, Span)> {
             }
         }
     }
-    return all;
+    all
 }
 
 fn parse_attrs(input: ParseStream)
@@ -934,7 +934,7 @@ impl Field {
                 ),
             })
     }
-    pub fn from_self(&self) -> TokenStream {
+    pub fn as_token_stream(&self) -> TokenStream {
         match &self.attr {
             AttrAccess::Indexed(idx) => quote!(self.#idx),
             AttrAccess::Named(name) => quote!(self.#name),
