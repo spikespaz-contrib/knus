@@ -186,8 +186,7 @@ pub enum Literal {
 impl<S> Node<S> {
     /// Returns node children
     pub fn children(&self)
-        -> impl Iterator<Item=&Spanned<Node<S>, S>> +
-                ExactSizeIterator
+        -> impl ExactSizeIterator<Item=&Spanned<Node<S>, S>>
     {
         self.children.as_ref().map(|c| c.iter()).unwrap_or_else(|| [].iter())
     }
@@ -295,9 +294,9 @@ impl fmt::Display for TypeName {
     }
 }
 
-impl Into<TypeName> for BuiltinType {
-    fn into(self) -> TypeName {
-        self.as_type()
+impl From<BuiltinType> for TypeName {
+    fn from(val: BuiltinType) -> Self {
+        val.as_type()
     }
 }
 

@@ -91,15 +91,15 @@ impl Span {
     }
 }
 
-impl Into<ErrorSpan> for Span {
-    fn into(self) -> ErrorSpan {
-        (self.0, self.1.saturating_sub(self.0)).into()
+impl From<Span> for ErrorSpan {
+    fn from(val: Span) -> Self {
+        (val.0, val.1.saturating_sub(val.0)).into()
     }
 }
 
-impl Into<ErrorSpan> for LineSpan {
-    fn into(self) -> ErrorSpan {
-        (self.0.offset, self.1.offset.saturating_sub(self.0.offset)).into()
+impl From<LineSpan> for ErrorSpan {
+    fn from(val: LineSpan) -> Self {
+        (val.0.offset, val.1.offset.saturating_sub(val.0.offset)).into()
     }
 }
 
@@ -109,7 +109,7 @@ impl chumsky::Span for Span {
     fn new(_context: (), range: std::ops::Range<usize>) -> Self {
         Span(range.start(), range.end())
     }
-    fn context(&self) -> () { () }
+    fn context(&self) { }
     fn start(&self) -> usize { self.0 }
     fn end(&self) -> usize { self.1 }
 }
@@ -160,7 +160,7 @@ impl chumsky::Span for LineSpan {
     fn new(_context: (), range: std::ops::Range<LinePos>) -> Self {
         LineSpan(range.start, range.end)
     }
-    fn context(&self) -> () { () }
+    fn context(&self) { }
     fn start(&self) -> LinePos { self.0 }
     fn end(&self) -> LinePos { self.1 }
 }

@@ -613,7 +613,7 @@ fn decode_node(common: &Common, child_def: &Child, in_partial: bool,
     let ctx = common.ctx;
     let fld = &child_def.field.tmp_name;
     let dest = if in_partial {
-        child_def.field.from_self()
+        child_def.field.as_token_stream()
     } else {
         quote!(#fld)
     };
@@ -659,7 +659,7 @@ fn insert_child(s: &Common, node: &syn::Ident) -> syn::Result<TokenStream> {
     let ctx = s.ctx;
     let mut match_branches = Vec::with_capacity(s.object.children.len());
     for child_def in &s.object.children {
-        let dest = &child_def.field.from_self();
+        let dest = &child_def.field.as_token_stream();
         let child_name = &child_def.name;
         if matches!(child_def.mode, ChildMode::Flatten) {
             match_branches.push(quote! {
@@ -686,7 +686,7 @@ fn insert_child(s: &Common, node: &syn::Ident) -> syn::Result<TokenStream> {
         } else {
             let dup_err = format!("duplicate node `{}`, single node expected",
                                   child_name.escape_default());
-            let decode = decode_node(s, &child_def, true, node)?;
+            let decode = decode_node(s, child_def, true, node)?;
             match_branches.push(quote! {
                 #child_name => {
                     if #dest.is_some() {
@@ -713,7 +713,7 @@ fn insert_property(s: &Common, name: &syn::Ident, value: &syn::Ident)
     let ctx = s.ctx;
     let mut match_branches = Vec::with_capacity(s.object.children.len());
     for prop in &s.object.properties {
-        let dest = &prop.field.from_self();
+        let dest = &prop.field.as_token_stream();
         let prop_name = &prop.name;
         if prop.flatten {
             match_branches.push(quote! {
@@ -722,7 +722,7 @@ fn insert_property(s: &Common, name: &syn::Ident, value: &syn::Ident)
                 => Ok(true),
             });
         } else {
-            let decode_value = decode_value(&value, ctx, &prop.decode,
+            let decode_value = decode_value(value, ctx, &prop.decode,
                                             prop.option)?;
             if prop.option {
                 match_branches.push(quote! {
@@ -784,7 +784,7 @@ fn decode_children(s: &Common, children: &syn::Ident,
                 declare_empty.push(quote! {
                     let mut #fld = Vec::new();
                 });
-                let decode = decode_node(s, &child_def, false, &child)?;
+                let decode = decode_node(s, child_def, false, &child)?;
                 match_branches.push(quote! {
                     #child_name => #decode,
                 });
@@ -832,7 +832,7 @@ fn decode_children(s: &Common, children: &syn::Ident,
                 let dup_err = format!(
                     "duplicate node `{}`, single node expected",
                     child_name.escape_default());
-                let decode = decode_node(s, &child_def, false, &child)?;
+                let decode = decode_node(s, child_def, false, &child)?;
                 match_branches.push(quote! {
                     #child_name => {
                         if #fld.is_some() {

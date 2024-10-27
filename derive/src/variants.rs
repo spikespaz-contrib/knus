@@ -131,7 +131,7 @@ fn decode(e: &Common, node: &syn::Ident) -> syn::Result<TokenStream> {
                     #name => { #decode }
                 });
             }
-            VariantKind::Named(_) => todo!(),
+            VariantKind::Named => unimplemented!(),
         }
     }
     // TODO(tailhook) use strsim to find similar names

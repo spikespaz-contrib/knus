@@ -113,7 +113,7 @@ pub fn check_flag_node<S: ErrorSpan>(
                 &arg.literal, "argument",
                 "unexpected argument"));
     }
-    for (name, _) in &node.properties {
+    for name in node.properties.keys() {
         ctx.emit_error(DecodeError::unexpected(
             name, "property",
             format!("unexpected property `{}`",

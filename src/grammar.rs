@@ -4,19 +4,21 @@ use chumsky::prelude::*;
 
 use crate::ast::{Literal, TypeName, Node, Value, Integer, Decimal, Radix};
 use crate::ast::{SpannedName, SpannedNode, Document};
-use crate::span::{Spanned};
-use crate::traits::{Span};
+use crate::span::Spanned;
+use crate::traits::Span;
 use crate::errors::{ParseError as Error, TokenFormat};
 
 use chumsky::combinator::{Map, Then};
 use chumsky::chain::Chain;
+
+type MapChar<O,U> = fn(_: (O, U)) -> Vec<char>;
 
 trait ChainChar<I: Clone, O> {
     type Error;
     fn chain_c<U, P>(
         self,
         other: P
-    ) -> Map<Then<Self, P>, fn(_: (O, U)) -> Vec<char>, (O, U)>where
+    ) -> Map<Then<Self, P>, MapChar<O,U>, (O, U)>where
         Self: Sized,
         U: Chain<char>,
         O: Chain<char>,
@@ -28,7 +30,7 @@ impl<I: Clone, O, R: Parser<I, O>> ChainChar<I, O> for R {
     fn chain_c<U, P>(
         self,
         other: P
-    ) -> Map<Then<Self, P>, fn(_: (O, U)) -> Vec<char>, (O, U)>where
+    ) -> Map<Then<Self, P>, MapChar<O,U>, (O, U)>where
         Self: Sized,
         U: Chain<char>,
         O: Chain<char>,
@@ -207,7 +209,7 @@ fn esc_char<S: Span>() -> impl Parser<char, char, Error=Error<S>> {
         })
     })
     .or(just('u').ignore_then(
-            filter_map(|span, c: char| c.is_digit(16).then(|| c)
+            filter_map(|span, c: char| c.is_ascii_hexdigit().then_some(c)
                 .ok_or_else(|| Error::Unexpected {
                     label: Some("unexpected character"),
                     span,
@@ -362,7 +364,9 @@ fn radix_number<S: Span>() -> impl Parser<char, Literal, Error=Error<S>> {
     )))
     .map(|(sign, (radix, value))| {
         let mut s = String::with_capacity(value.len() + sign.map_or(0, |_| 1));
-        sign.map(|c| s.push(c));
+        if let Some(c) = sign {
+            s.push(c);
+        }
         s.extend(value.into_iter().filter(|&c| c != '_'));
         Literal::Int(Integer(radix, s.into()))
     })
@@ -617,7 +621,7 @@ mod test {
         }
     }
 
-    fn parse<'x, P, T>(p: P, text: &'x str) -> Result<T, String>
+    fn parse<P, T>(p: P, text: &str) -> Result<T, String>
         where P: Parser<char, T, Error=ParseError<Span>>
     {
         p.then_ignore(end())
@@ -634,7 +638,7 @@ mod test {
             buf.truncate(0);
             miette::JSONReportHandler::new()
                 .render_report(&mut buf, &e).unwrap();
-            return buf;
+            buf
         })
     }
 

@@ -241,7 +241,7 @@ impl<S: ErrorSpan> DecodeScalar<S> for bool {
         match &**val {
             Literal::Bool(value) => Ok(*value),
             _ => {
-                ctx.emit_error(DecodeError::scalar_kind(Kind::Bool, &val));
+                ctx.emit_error(DecodeError::scalar_kind(Kind::Bool, val));
                 Ok(Default::default())
             }
         }

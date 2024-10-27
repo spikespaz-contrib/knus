@@ -284,31 +284,22 @@ impl fmt::Display for FormatUnexpected<'_> {
 impl<S: ErrorSpan> ParseError<S> {
     pub(crate) fn with_expected_token(mut self, token: &'static str) -> Self {
         use ParseError::*;
-        match &mut self {
-            Unexpected { ref mut expected, .. } => {
-                *expected = [TokenFormat::Token(token)].into_iter().collect();
-            }
-            _ => {},
+        if let Unexpected { ref mut expected, .. } = &mut self {
+            *expected = [TokenFormat::Token(token)].into_iter().collect();
         }
         self
     }
     pub(crate) fn with_expected_kind(mut self, token: &'static str) -> Self {
         use ParseError::*;
-        match &mut self {
-            Unexpected { ref mut expected, .. } => {
-                *expected = [TokenFormat::Kind(token)].into_iter().collect();
-            }
-            _ => {},
+        if let Unexpected { ref mut expected, .. } = &mut self {
+            *expected = [TokenFormat::Kind(token)].into_iter().collect();
         }
         self
     }
     pub(crate) fn with_no_expected(mut self) -> Self {
         use ParseError::*;
-        match &mut self {
-            Unexpected { ref mut expected, .. } => {
-                *expected = BTreeSet::new();
-            }
-            _ => {},
+        if let Unexpected { ref mut expected, .. } = &mut self {
+            *expected = BTreeSet::new();
         }
         self
     }
@@ -364,7 +355,7 @@ impl<S: Span> chumsky::Error<char> for ParseError<S> {
             (Unexpected { expected: ref mut dest, .. },
              Unexpected { expected, .. })
             => {
-                dest.extend(expected.into_iter());
+                dest.extend(expected);
                 self
             }
             (_, other) => todo!("{} -> {}", self, other),
