@@ -1,6 +1,6 @@
+use knus::ast::{BuiltinType, TypeName};
 use knus::span::Span;
 use knus::traits::Decode;
-use knus::ast::{TypeName, BuiltinType};
 
 #[derive(knus_derive::Decode, Debug, PartialEq)]
 struct Child;
@@ -38,49 +38,65 @@ fn parse<T: Decode<Span>>(text: &str) -> T {
 
 #[test]
 fn parse_node_span() {
-    assert_eq!(parse::<NodeSpan>(r#"node "hello""#),
-               NodeSpan {
-                   span: Span(0, 12),
-                   name: "hello".into(),
-                   children: Vec::new(),
-               });
-    assert_eq!(parse::<NodeSpan>(r#"   node  "hello"     "#),
-               NodeSpan {
-                   span: Span(3, 21),
-                   name: "hello".into(),
-                   children: Vec::new(),
-               });
-    assert_eq!(parse::<NodeSpan>(r#"   node  "hello";     "#),
-               NodeSpan {
-                   span: Span(3, 17),
-                   name: "hello".into(),
-                   children: Vec::new(),
-               });
-    assert_eq!(parse::<NodeSpan>(r#"   node  "hello"     {   child;   }"#),
-               NodeSpan {
-                   span: Span(3, 35),
-                   name: "hello".into(),
-                   children: vec![Child],
-               });
+    assert_eq!(
+        parse::<NodeSpan>(r#"node "hello""#),
+        NodeSpan {
+            span: Span(0, 12),
+            name: "hello".into(),
+            children: Vec::new(),
+        }
+    );
+    assert_eq!(
+        parse::<NodeSpan>(r#"   node  "hello"     "#),
+        NodeSpan {
+            span: Span(3, 21),
+            name: "hello".into(),
+            children: Vec::new(),
+        }
+    );
+    assert_eq!(
+        parse::<NodeSpan>(r#"   node  "hello";     "#),
+        NodeSpan {
+            span: Span(3, 17),
+            name: "hello".into(),
+            children: Vec::new(),
+        }
+    );
+    assert_eq!(
+        parse::<NodeSpan>(r#"   node  "hello"     {   child;   }"#),
+        NodeSpan {
+            span: Span(3, 35),
+            name: "hello".into(),
+            children: vec![Child],
+        }
+    );
 }
 
 #[test]
 fn parse_node_type() {
-    assert_eq!(parse::<NodeType>(r#"(unknown)node {}"#),
-               NodeType { type_name: "unknown".into() });
+    assert_eq!(
+        parse::<NodeType>(r#"(unknown)node {}"#),
+        NodeType {
+            type_name: "unknown".into()
+        }
+    );
 }
 
 #[test]
 fn parse_name_and_type() {
-    assert_eq!(parse::<NameAndType>(r#"(u32)nodexxx"#),
-               NameAndType {
-                   node_name: "nodexxx".into(),
-                   type_name: Some(BuiltinType::U32.into()),
-               });
+    assert_eq!(
+        parse::<NameAndType>(r#"(u32)nodexxx"#),
+        NameAndType {
+            node_name: "nodexxx".into(),
+            type_name: Some(BuiltinType::U32.into()),
+        }
+    );
 
-    assert_eq!(parse::<NameAndType>(r#"yyynode /-{   }"#),
-               NameAndType {
-                   node_name: "yyynode".into(),
-                   type_name: None,
-               });
+    assert_eq!(
+        parse::<NameAndType>(r#"yyynode /-{   }"#),
+        NameAndType {
+            node_name: "yyynode".into(),
+            type_name: None,
+        }
+    );
 }

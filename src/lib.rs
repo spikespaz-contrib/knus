@@ -14,9 +14,9 @@ pub mod errors;
 pub mod span;
 pub mod traits;
 
-#[cfg(feature="derive")]
+#[cfg(feature = "derive")]
 pub use knus_derive::{Decode, DecodeScalar};
 
-pub use wrappers::{parse_ast, parse, parse_with_context};
-pub use traits::{Decode, DecodeScalar, DecodeChildren};
 pub use errors::Error;
+pub use traits::{Decode, DecodeChildren, DecodeScalar};
+pub use wrappers::{parse, parse_ast, parse_with_context};

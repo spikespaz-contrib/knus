@@ -4,7 +4,6 @@ use syn::ext::IdentExt;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 
-
 pub enum Scalar {
     Enum(Enum),
 }
@@ -20,34 +19,32 @@ pub struct Variant {
 }
 
 impl Enum {
-    fn new(ident: syn::Ident, _attrs: Vec<syn::Attribute>,
-           src_variants: impl Iterator<Item=syn::Variant>)
-        -> syn::Result<Self>
-    {
+    fn new(
+        ident: syn::Ident,
+        _attrs: Vec<syn::Attribute>,
+        src_variants: impl Iterator<Item = syn::Variant>,
+    ) -> syn::Result<Self> {
         let mut variants = Vec::new();
         for var in src_variants {
             match var.fields {
                 syn::Fields::Unit => {
-                    let name = heck::ToKebabCase
-                        ::to_kebab_case(&var.ident.unraw().to_string()[..]);
+                    let name = heck::ToKebabCase::to_kebab_case(&var.ident.unraw().to_string()[..]);
                     variants.push(Variant {
                         ident: var.ident,
                         name,
                     });
                 }
                 _ => {
-                    return Err(syn::Error::new(var.span(),
-                        "only unit variants are allowed for DecodeScalar"));
+                    return Err(syn::Error::new(
+                        var.span(),
+                        "only unit variants are allowed for DecodeScalar",
+                    ));
                 }
             }
         }
-        Ok(Enum {
-            ident,
-            variants,
-        })
+        Ok(Enum { ident, variants })
     }
 }
-
 
 impl Parse for Scalar {
     fn parse(input: ParseStream) -> syn::Result<Self> {
@@ -59,9 +56,7 @@ impl Parse for Scalar {
         if lookahead.peek(syn::Token![enum]) {
             let item: syn::ItemEnum = input.parse()?;
             attrs.extend(item.attrs);
-            Enum::new(item.ident, attrs,
-                      item.variants.into_iter())
-                .map(Scalar::Enum)
+            Enum::new(item.ident, attrs, item.variants.into_iter()).map(Scalar::Enum)
         } else {
             Err(lookahead.error())
         }
@@ -70,33 +65,34 @@ impl Parse for Scalar {
 
 pub fn emit_scalar(s: &Scalar) -> syn::Result<TokenStream> {
     match s {
-        Scalar::Enum(e) => {
-            emit_enum(e)
-        }
+        Scalar::Enum(e) => emit_enum(e),
     }
 }
-
 
 pub fn emit_enum(e: &Enum) -> syn::Result<TokenStream> {
     let e_name = &e.ident;
     let value_err = if e.variants.len() <= 3 {
-        format!("expected one of {}",
-                e.variants.iter()
+        format!(
+            "expected one of {}",
+            e.variants
+                .iter()
                 .map(|v| format!("`{}`", v.name.escape_default()))
                 .collect::<Vec<_>>()
-                .join(", "))
+                .join(", ")
+        )
     } else {
-        format!("expected `{}`, `{}`, or one of {} others",
-                e.variants[0].name.escape_default(),
-                e.variants[1].name.escape_default(),
-                e.variants.len() - 2)
+        format!(
+            "expected `{}`, `{}`, or one of {} others",
+            e.variants[0].name.escape_default(),
+            e.variants[1].name.escape_default(),
+            e.variants.len() - 2
+        )
     };
-    let match_branches = e.variants.iter()
-        .map(|var| {
-            let name = &var.name;
-            let ident = &var.ident;
-            quote!(#name => Ok(#e_name::#ident))
-        });
+    let match_branches = e.variants.iter().map(|var| {
+        let name = &var.name;
+        let ident = &var.ident;
+        quote!(#name => Ok(#e_name::#ident))
+    });
     Ok(quote! {
         impl<S: ::knus::traits::ErrorSpan> ::knus::DecodeScalar<S>
                 for #e_name {

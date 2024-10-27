@@ -7,8 +7,7 @@ mod scalar;
 mod variants;
 
 use definition::Definition;
-use scalar::{Scalar, emit_scalar};
-
+use scalar::{emit_scalar, Scalar};
 
 fn emit_decoder(def: &Definition) -> syn::Result<TokenStream> {
     match def {
@@ -23,9 +22,7 @@ fn emit_decoder(def: &Definition) -> syn::Result<TokenStream> {
 #[proc_macro_error2::proc_macro_error]
 #[proc_macro_derive(Decode, attributes(knus))]
 #[doc = include_str!("../derive_decode.md")]
-pub fn decode_derive(input: proc_macro::TokenStream)
-    -> proc_macro::TokenStream
-{
+pub fn decode_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let item = syn::parse_macro_input!(input as Definition);
     match emit_decoder(&item) {
         Ok(stream) => stream.into(),
@@ -36,9 +33,7 @@ pub fn decode_derive(input: proc_macro::TokenStream)
 #[proc_macro_error2::proc_macro_error]
 #[proc_macro_derive(DecodeScalar, attributes(knus))]
 #[doc = include_str!("../derive_decode_scalar.md")]
-pub fn decode_scalar_derive(input: proc_macro::TokenStream)
-    -> proc_macro::TokenStream
-{
+pub fn decode_scalar_derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let item = syn::parse_macro_input!(input as Scalar);
     match emit_scalar(&item) {
         Ok(stream) => stream.into(),
