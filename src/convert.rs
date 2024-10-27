@@ -3,19 +3,17 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::sync::Arc;
 
-use crate::ast::{Literal, Integer, Decimal, Radix, TypeName, BuiltinType};
+use crate::ast::{BuiltinType, Decimal, Integer, Literal, Radix, TypeName};
 use crate::decode::{Context, Kind};
 use crate::errors::{DecodeError, ExpectedType};
-use crate::span::{Spanned};
-use crate::traits::{ErrorSpan, DecodeScalar};
-
+use crate::span::Spanned;
+use crate::traits::{DecodeScalar, ErrorSpan};
 
 macro_rules! impl_integer {
     ($typ: ident, $marker: ident) => {
         impl TryFrom<&Integer> for $typ {
             type Error = <$typ as FromStr>::Err;
-            fn try_from(val: &Integer) -> Result<$typ, <$typ as FromStr>::Err>
-            {
+            fn try_from(val: &Integer) -> Result<$typ, <$typ as FromStr>::Err> {
                 match val.0 {
                     Radix::Bin => <$typ>::from_str_radix(&val.1, 2),
                     Radix::Oct => <$typ>::from_str_radix(&val.1, 8),
@@ -26,43 +24,38 @@ macro_rules! impl_integer {
         }
 
         impl<S: ErrorSpan> DecodeScalar<S> for $typ {
-            fn raw_decode(val: &Spanned<Literal, S>, ctx: &mut Context<S>)
-                -> Result<$typ, DecodeError<S>>
-            {
+            fn raw_decode(
+                val: &Spanned<Literal, S>,
+                ctx: &mut Context<S>,
+            ) -> Result<$typ, DecodeError<S>> {
                 match &**val {
-                    Literal::Int(ref value) => {
-                        match value.try_into() {
-                            Ok(val) => Ok(val),
-                            Err(e) => {
-                                ctx.emit_error(DecodeError::conversion(val, e));
-                                Ok(0)
-                            }
+                    Literal::Int(ref value) => match value.try_into() {
+                        Ok(val) => Ok(val),
+                        Err(e) => {
+                            ctx.emit_error(DecodeError::conversion(val, e));
+                            Ok(0)
                         }
-                    }
+                    },
                     _ => {
-                        ctx.emit_error(DecodeError::scalar_kind(
-                                Kind::String, val));
+                        ctx.emit_error(DecodeError::scalar_kind(Kind::String, val));
                         Ok(0)
                     }
                 }
             }
-            fn type_check(type_name: &Option<Spanned<TypeName, S>>,
-                          ctx: &mut Context<S>)
-            {
+            fn type_check(type_name: &Option<Spanned<TypeName, S>>, ctx: &mut Context<S>) {
                 if let Some(typ) = type_name {
                     if typ.as_builtin() != Some(&BuiltinType::$marker) {
                         ctx.emit_error(DecodeError::TypeName {
                             span: typ.span().clone(),
                             found: Some(typ.value.clone()),
-                            expected: ExpectedType::optional(
-                                BuiltinType::$marker),
+                            expected: ExpectedType::optional(BuiltinType::$marker),
                             rust_type: stringify!($typ),
                         });
                     }
                 }
             }
         }
-    }
+    };
 }
 
 impl_integer!(i8, I8);
@@ -80,59 +73,54 @@ macro_rules! impl_float {
     ($typ: ident, $marker: ident) => {
         impl TryFrom<&Decimal> for $typ {
             type Error = <$typ as FromStr>::Err;
-            fn try_from(val: &Decimal) -> Result<$typ, <$typ as FromStr>::Err>
-            {
+            fn try_from(val: &Decimal) -> Result<$typ, <$typ as FromStr>::Err> {
                 <$typ>::from_str(&val.0)
             }
         }
 
         impl<S: ErrorSpan> DecodeScalar<S> for $typ {
-            fn raw_decode(val: &Spanned<Literal, S>, ctx: &mut Context<S>)
-                -> Result<$typ, DecodeError<S>>
-            {
+            fn raw_decode(
+                val: &Spanned<Literal, S>,
+                ctx: &mut Context<S>,
+            ) -> Result<$typ, DecodeError<S>> {
                 match &**val {
-                    Literal::Decimal(ref value) => {
-                        match value.try_into() {
-                            Ok(val) => Ok(val),
-                            Err(e) => {
-                                ctx.emit_error(DecodeError::conversion(val, e));
-                                Ok(0.0)
-                            }
+                    Literal::Decimal(ref value) => match value.try_into() {
+                        Ok(val) => Ok(val),
+                        Err(e) => {
+                            ctx.emit_error(DecodeError::conversion(val, e));
+                            Ok(0.0)
                         }
-                    }
+                    },
                     _ => {
-                        ctx.emit_error(DecodeError::scalar_kind(
-                                Kind::String, val));
+                        ctx.emit_error(DecodeError::scalar_kind(Kind::String, val));
                         Ok(0.0)
                     }
                 }
             }
-            fn type_check(type_name: &Option<Spanned<TypeName, S>>,
-                          ctx: &mut Context<S>)
-            {
+            fn type_check(type_name: &Option<Spanned<TypeName, S>>, ctx: &mut Context<S>) {
                 if let Some(typ) = type_name {
                     if typ.as_builtin() != Some(&BuiltinType::$marker) {
                         ctx.emit_error(DecodeError::TypeName {
                             span: typ.span().clone(),
                             found: Some(typ.value.clone()),
-                            expected: ExpectedType::optional(
-                                BuiltinType::$marker),
+                            expected: ExpectedType::optional(BuiltinType::$marker),
                             rust_type: stringify!($typ),
                         });
                     }
                 }
             }
         }
-    }
+    };
 }
 
 impl_float!(f32, F32);
 impl_float!(f64, F64);
 
 impl<S: ErrorSpan> DecodeScalar<S> for String {
-    fn raw_decode(val: &Spanned<Literal, S>, ctx: &mut Context<S>)
-        -> Result<String, DecodeError<S>>
-    {
+    fn raw_decode(
+        val: &Spanned<Literal, S>,
+        ctx: &mut Context<S>,
+    ) -> Result<String, DecodeError<S>> {
         match &**val {
             Literal::String(ref s) => Ok(s.clone().into()),
             _ => {
@@ -141,9 +129,7 @@ impl<S: ErrorSpan> DecodeScalar<S> for String {
             }
         }
     }
-    fn type_check(type_name: &Option<Spanned<TypeName, S>>,
-                  ctx: &mut Context<S>)
-    {
+    fn type_check(type_name: &Option<Spanned<TypeName, S>>, ctx: &mut Context<S>) {
         if let Some(typ) = type_name {
             ctx.emit_error(DecodeError::TypeName {
                 span: typ.span().clone(),
@@ -155,11 +141,11 @@ impl<S: ErrorSpan> DecodeScalar<S> for String {
     }
 }
 
-
 impl<S: ErrorSpan> DecodeScalar<S> for PathBuf {
-    fn raw_decode(val: &Spanned<Literal, S>, ctx: &mut Context<S>)
-        -> Result<PathBuf, DecodeError<S>>
-    {
+    fn raw_decode(
+        val: &Spanned<Literal, S>,
+        ctx: &mut Context<S>,
+    ) -> Result<PathBuf, DecodeError<S>> {
         match &**val {
             Literal::String(ref s) => Ok(String::from(s.clone()).into()),
             _ => {
@@ -168,9 +154,7 @@ impl<S: ErrorSpan> DecodeScalar<S> for PathBuf {
             }
         }
     }
-    fn type_check(type_name: &Option<Spanned<TypeName, S>>,
-                  ctx: &mut Context<S>)
-    {
+    fn type_check(type_name: &Option<Spanned<TypeName, S>>, ctx: &mut Context<S>) {
         if let Some(typ) = type_name {
             ctx.emit_error(DecodeError::TypeName {
                 span: typ.span().clone(),
@@ -183,9 +167,10 @@ impl<S: ErrorSpan> DecodeScalar<S> for PathBuf {
 }
 
 impl<S: ErrorSpan> DecodeScalar<S> for Arc<Path> {
-    fn raw_decode(val: &Spanned<Literal, S>, ctx: &mut Context<S>)
-        -> Result<Arc<Path>, DecodeError<S>>
-    {
+    fn raw_decode(
+        val: &Spanned<Literal, S>,
+        ctx: &mut Context<S>,
+    ) -> Result<Arc<Path>, DecodeError<S>> {
         match &**val {
             Literal::String(ref s) => Ok(PathBuf::from(&(**s)[..]).into()),
             _ => {
@@ -194,9 +179,7 @@ impl<S: ErrorSpan> DecodeScalar<S> for Arc<Path> {
             }
         }
     }
-    fn type_check(type_name: &Option<Spanned<TypeName, S>>,
-                  ctx: &mut Context<S>)
-    {
+    fn type_check(type_name: &Option<Spanned<TypeName, S>>, ctx: &mut Context<S>) {
         if let Some(typ) = type_name {
             ctx.emit_error(DecodeError::TypeName {
                 span: typ.span().clone(),
@@ -209,9 +192,10 @@ impl<S: ErrorSpan> DecodeScalar<S> for Arc<Path> {
 }
 
 impl<S: ErrorSpan> DecodeScalar<S> for Arc<str> {
-    fn raw_decode(val: &Spanned<Literal, S>, ctx: &mut Context<S>)
-        -> Result<Arc<str>, DecodeError<S>>
-    {
+    fn raw_decode(
+        val: &Spanned<Literal, S>,
+        ctx: &mut Context<S>,
+    ) -> Result<Arc<str>, DecodeError<S>> {
         match &**val {
             Literal::String(ref s) => Ok(s.clone().into()),
             _ => {
@@ -220,9 +204,7 @@ impl<S: ErrorSpan> DecodeScalar<S> for Arc<str> {
             }
         }
     }
-    fn type_check(type_name: &Option<Spanned<TypeName, S>>,
-                  ctx: &mut Context<S>)
-    {
+    fn type_check(type_name: &Option<Spanned<TypeName, S>>, ctx: &mut Context<S>) {
         if let Some(typ) = type_name {
             ctx.emit_error(DecodeError::TypeName {
                 span: typ.span().clone(),
@@ -235,9 +217,7 @@ impl<S: ErrorSpan> DecodeScalar<S> for Arc<str> {
 }
 
 impl<S: ErrorSpan> DecodeScalar<S> for bool {
-    fn raw_decode(val: &Spanned<Literal, S>, ctx: &mut Context<S>)
-        -> Result<bool, DecodeError<S>>
-    {
+    fn raw_decode(val: &Spanned<Literal, S>, ctx: &mut Context<S>) -> Result<bool, DecodeError<S>> {
         match &**val {
             Literal::Bool(value) => Ok(*value),
             _ => {
@@ -246,9 +226,7 @@ impl<S: ErrorSpan> DecodeScalar<S> for bool {
             }
         }
     }
-    fn type_check(type_name: &Option<Spanned<TypeName, S>>,
-                  ctx: &mut Context<S>)
-    {
+    fn type_check(type_name: &Option<Spanned<TypeName, S>>, ctx: &mut Context<S>) {
         if let Some(typ) = type_name {
             ctx.emit_error(DecodeError::TypeName {
                 span: typ.span().clone(),

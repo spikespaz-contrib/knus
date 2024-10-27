@@ -14,56 +14,52 @@
 use std::fmt;
 use std::ops::Range;
 
-use crate::traits;
 use crate::decode::Context;
+use crate::traits;
 
 /// Reexport of [miette::SourceSpan] trait that we use for parsing
 pub use miette::SourceSpan as ErrorSpan;
 
 /// Wraps the structure to keep source code span, but also dereference to T
 #[derive(Clone, Debug)]
-#[cfg_attr(feature="minicbor", derive(minicbor::Encode, minicbor::Decode))]
+#[cfg_attr(feature = "minicbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct Spanned<T, S> {
-    #[cfg_attr(feature="minicbor", n(0))]
+    #[cfg_attr(feature = "minicbor", n(0))]
     pub(crate) span: S,
-    #[cfg_attr(feature="minicbor", n(1))]
+    #[cfg_attr(feature = "minicbor", n(1))]
     pub(crate) value: T,
 }
 
 /// Normal byte offset span
 #[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature="minicbor", derive(minicbor::Encode, minicbor::Decode))]
+#[cfg_attr(feature = "minicbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct Span(
-    #[cfg_attr(feature="minicbor", n(0))]
-    pub usize,
-    #[cfg_attr(feature="minicbor", n(1))]
-    pub usize,
+    #[cfg_attr(feature = "minicbor", n(0))] pub usize,
+    #[cfg_attr(feature = "minicbor", n(1))] pub usize,
 );
 
 /// Line and column position of the datum in the source code
 // TODO(tailhook) optimize Eq to check only offset
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-#[cfg_attr(feature="minicbor", derive(minicbor::Encode, minicbor::Decode))]
+#[cfg_attr(feature = "minicbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct LinePos {
     /// Zero-based byte offset
-    #[cfg_attr(feature="minicbor", n(0))]
+    #[cfg_attr(feature = "minicbor", n(0))]
     pub offset: usize,
     /// Zero-based line number
-    #[cfg_attr(feature="minicbor", n(1))]
+    #[cfg_attr(feature = "minicbor", n(1))]
     pub line: usize,
     /// Zero-based column number
-    #[cfg_attr(feature="minicbor", n(2))]
+    #[cfg_attr(feature = "minicbor", n(2))]
     pub column: usize,
 }
 
 /// Span with line and column number
 #[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature="minicbor", derive(minicbor::Encode, minicbor::Decode))]
+#[cfg_attr(feature = "minicbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct LineSpan(
-    #[cfg_attr(feature="minicbor", n(0))]
-    pub LinePos,
-    #[cfg_attr(feature="minicbor", n(1))]
-    pub LinePos,
+    #[cfg_attr(feature = "minicbor", n(0))] pub LinePos,
+    #[cfg_attr(feature = "minicbor", n(1))] pub LinePos,
 );
 
 #[allow(missing_debug_implementations)]
@@ -73,16 +69,14 @@ mod sealed {
         pub(crate) offset: usize,
     }
 
-    #[cfg(feature="line-numbers")]
+    #[cfg(feature = "line-numbers")]
     pub struct LineTracker {
         pub(crate) offset: usize,
         pub(crate) caret_return: bool,
         pub(crate) line: usize,
         pub(crate) column: usize,
     }
-
 }
-
 
 impl Span {
     /// Length of the span in bytes
@@ -109,9 +103,13 @@ impl chumsky::Span for Span {
     fn new(_context: (), range: std::ops::Range<usize>) -> Self {
         Span(range.start(), range.end())
     }
-    fn context(&self) { }
-    fn start(&self) -> usize { self.0 }
-    fn end(&self) -> usize { self.1 }
+    fn context(&self) {}
+    fn start(&self) -> usize {
+        self.0
+    }
+    fn end(&self) -> usize {
+        self.1
+    }
 }
 impl traits::sealed::SpanTracker for sealed::OffsetTracker {
     type Span = Span;
@@ -122,11 +120,10 @@ impl traits::sealed::SpanTracker for sealed::OffsetTracker {
     }
 }
 
-
 impl traits::sealed::Sealed for Span {
     type Tracker = sealed::OffsetTracker;
     fn at_start(&self, chars: usize) -> Self {
-        Span(self.0, self.0+chars)
+        Span(self.0, self.0 + chars)
     }
 
     fn at_end(&self) -> Self {
@@ -142,12 +139,12 @@ impl traits::sealed::Sealed for Span {
     }
 
     fn stream(text: &str) -> traits::sealed::Stream<'_, Self, Self::Tracker>
-        where Self: chumsky::Span
+    where
+        Self: chumsky::Span,
     {
         chumsky::Stream::from_iter(
             Span(text.len(), text.len()),
-            traits::sealed::Map(text.chars(),
-                                sealed::OffsetTracker { offset: 0 }),
+            traits::sealed::Map(text.chars(), sealed::OffsetTracker { offset: 0 }),
         )
     }
 }
@@ -160,12 +157,16 @@ impl chumsky::Span for LineSpan {
     fn new(_context: (), range: std::ops::Range<LinePos>) -> Self {
         LineSpan(range.start, range.end)
     }
-    fn context(&self) { }
-    fn start(&self) -> LinePos { self.0 }
-    fn end(&self) -> LinePos { self.1 }
+    fn context(&self) {}
+    fn start(&self) -> LinePos {
+        self.0
+    }
+    fn end(&self) -> LinePos {
+        self.1
+    }
 }
 
-#[cfg(feature="line-numbers")]
+#[cfg(feature = "line-numbers")]
 impl traits::sealed::SpanTracker for sealed::LineTracker {
     type Span = LineSpan;
     fn next_span(&mut self, c: char) -> LineSpan {
@@ -175,14 +176,14 @@ impl traits::sealed::SpanTracker for sealed::LineTracker {
         self.offset += c.len_utf8();
         match c {
             '\n' if self.caret_return => {}
-            '\r'|'\n'|'\x0C'|'\u{0085}'|'\u{2028}'|'\u{2029}' => {
+            '\r' | '\n' | '\x0C' | '\u{0085}' | '\u{2028}' | '\u{2029}' => {
                 self.line += 1;
                 self.column = 0;
             }
             '\t' => self.column += 8,
             c => {
-                self.column += unicode_width::UnicodeWidthChar::width(c)
-                    .unwrap_or(0);  // treat control chars as zero-length
+                self.column += unicode_width::UnicodeWidthChar::width(c).unwrap_or(0);
+                // treat control chars as zero-length
             }
         }
         self.caret_return = c == '\r';
@@ -201,16 +202,19 @@ impl traits::sealed::SpanTracker for sealed::LineTracker {
     }
 }
 
-#[cfg(feature="line-numbers")]
+#[cfg(feature = "line-numbers")]
 impl traits::sealed::Sealed for LineSpan {
     type Tracker = sealed::LineTracker;
     /// Note assuming ascii, single-width, non-newline chars here
     fn at_start(&self, chars: usize) -> Self {
-        LineSpan(self.0, LinePos {
-            offset: self.0.offset + chars,
-            column: self.0.column + chars,
-            .. self.0
-        })
+        LineSpan(
+            self.0,
+            LinePos {
+                offset: self.0.offset + chars,
+                column: self.0.column + chars,
+                ..self.0
+            },
+        )
     }
 
     fn at_end(&self) -> Self {
@@ -219,11 +223,14 @@ impl traits::sealed::Sealed for LineSpan {
 
     /// Note assuming ascii, single-width, non-newline chars here
     fn before_start(&self, chars: usize) -> Self {
-        LineSpan(LinePos {
-            offset: self.0.offset.saturating_sub(chars),
-            column: self.0.column.saturating_sub(chars),
-            .. self.0
-        }, self.0)
+        LineSpan(
+            LinePos {
+                offset: self.0.offset.saturating_sub(chars),
+                column: self.0.column.saturating_sub(chars),
+                ..self.0
+            },
+            self.0,
+        )
     }
 
     fn length(&self) -> usize {
@@ -231,7 +238,8 @@ impl traits::sealed::Sealed for LineSpan {
     }
 
     fn stream(text: &str) -> traits::sealed::Stream<'_, Self, Self::Tracker>
-        where Self: chumsky::Span
+    where
+        Self: chumsky::Span,
     {
         let mut caret_return = false;
         let mut line = 0;
@@ -240,7 +248,7 @@ impl traits::sealed::Sealed for LineSpan {
         while let Some(c) = iter.next() {
             match c {
                 '\n' if caret_return => {}
-                '\r'|'\n'|'\x0C'|'\u{0085}'|'\u{2028}'|'\u{2029}' => {
+                '\r' | '\n' | '\x0C' | '\u{0085}' | '\u{2028}' | '\u{2029}' => {
                     line += 1;
                     last_line = iter.as_str();
                 }
@@ -269,14 +277,12 @@ impl traits::sealed::Sealed for LineSpan {
     }
 }
 
-#[cfg(feature="line-numbers")]
+#[cfg(feature = "line-numbers")]
 impl traits::Span for LineSpan {}
 
-#[cfg(feature="line-numbers")]
+#[cfg(feature = "line-numbers")]
 impl traits::DecodeSpan<LineSpan> for Span {
-    fn decode_span(span: &LineSpan, _: &mut Context<LineSpan>)
-        -> Self
-    {
+    fn decode_span(span: &LineSpan, _: &mut Context<LineSpan>) -> Self {
         Span(span.0.offset, span.1.offset)
     }
 }
@@ -297,9 +303,10 @@ impl<T, S> Spanned<T, S> {
         }
     }
     pub(crate) fn clone_as<U>(&self, ctx: &mut Context<S>) -> Spanned<T, U>
-        where U: traits::DecodeSpan<S>,
-              T: Clone,
-              S: traits::ErrorSpan,
+    where
+        U: traits::DecodeSpan<S>,
+        T: Clone,
+        S: traits::ErrorSpan,
     {
         Spanned {
             span: traits::DecodeSpan::decode_span(&self.span, ctx),
@@ -359,9 +366,7 @@ impl<S, T: PartialEq<T>> PartialEq for Spanned<T, S> {
 }
 
 impl<S, T: PartialOrd<T>> PartialOrd for Spanned<T, S> {
-    fn partial_cmp(&self, other: &Spanned<T, S>)
-        -> Option<std::cmp::Ordering>
-    {
+    fn partial_cmp(&self, other: &Spanned<T, S>) -> Option<std::cmp::Ordering> {
         self.value.partial_cmp(&other.value)
     }
 }
@@ -376,7 +381,8 @@ impl<S, T: Eq> Eq for Spanned<T, S> {}
 
 impl<S, T: std::hash::Hash> std::hash::Hash for Spanned<T, S> {
     fn hash<H>(&self, state: &mut H)
-        where H: std::hash::Hasher,
+    where
+        H: std::hash::Hasher,
     {
         self.value.hash(state)
     }

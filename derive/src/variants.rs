@@ -1,9 +1,8 @@
-use proc_macro2::{TokenStream, Span};
+use proc_macro2::{Span, TokenStream};
 use quote::quote;
 
 use crate::definition::{Enum, VariantKind};
 use crate::node;
-
 
 pub(crate) struct Common<'a> {
     pub object: &'a Enum,
@@ -28,8 +27,10 @@ pub fn emit_enum(e: &Enum) -> syn::Result<TokenStream> {
         }
         common_generics.params.push(syn::parse2(quote!(S)).unwrap());
         span_ty = quote!(S);
-        common_generics.make_where_clause().predicates.push(
-            syn::parse2(quote!(S: ::knus::traits::ErrorSpan)).unwrap());
+        common_generics
+            .make_where_clause()
+            .predicates
+            .push(syn::parse2(quote!(S: ::knus::traits::ErrorSpan)).unwrap());
     };
     let trait_gen = quote!(<#span_ty>);
     let (impl_gen, _, bounds) = common_generics.split_for_impl();
@@ -136,16 +137,22 @@ fn decode(e: &Common, node: &syn::Ident) -> syn::Result<TokenStream> {
     }
     // TODO(tailhook) use strsim to find similar names
     let err = if e.object.variants.len() <= 3 {
-        format!("expected one of {}",
-                e.object.variants.iter()
+        format!(
+            "expected one of {}",
+            e.object
+                .variants
+                .iter()
                 .map(|v| format!("`{}`", v.name.escape_default()))
                 .collect::<Vec<_>>()
-                .join(", "))
+                .join(", ")
+        )
     } else {
-        format!("expected `{}`, `{}`, or one of {} others",
-                e.object.variants[0].name.escape_default(),
-                e.object.variants[1].name.escape_default(),
-                e.object.variants.len() - 2)
+        format!(
+            "expected `{}`, `{}`, or one of {} others",
+            e.object.variants[0].name.escape_default(),
+            e.object.variants[1].name.escape_default(),
+            e.object.variants.len() - 2
+        )
     };
     Ok(quote! {
         match &**#node.node_name {

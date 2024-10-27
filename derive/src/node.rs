@@ -1,10 +1,9 @@
-use proc_macro2::{TokenStream, Span};
+use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use syn::ext::IdentExt;
 
-use crate::definition::{Struct, StructBuilder, ArgKind, FieldAttrs, DecodeMode};
-use crate::definition::{Child, Field, NewType, ExtraKind, ChildMode};
-
+use crate::definition::{ArgKind, DecodeMode, FieldAttrs, Struct, StructBuilder};
+use crate::definition::{Child, ChildMode, ExtraKind, Field, NewType};
 
 pub(crate) struct Common<'a> {
     pub object: &'a Struct,
@@ -36,8 +35,10 @@ pub fn emit_struct(s: &Struct, named: bool) -> syn::Result<TokenStream> {
         }
         common_generics.params.push(syn::parse2(quote!(S)).unwrap());
         span_ty = quote!(S);
-        common_generics.make_where_clause().predicates.push(
-            syn::parse2(quote!(S: ::knus::traits::ErrorSpan)).unwrap());
+        common_generics
+            .make_where_clause()
+            .predicates
+            .push(syn::parse2(quote!(S: ::knus::traits::ErrorSpan)).unwrap());
     };
     let trait_gen = quote!(<#span_ty>);
     let (impl_gen, _, bounds) = common_generics.split_for_impl();
@@ -51,37 +52,34 @@ pub fn emit_struct(s: &Struct, named: bool) -> syn::Result<TokenStream> {
     let decode_specials = decode_specials(&common, &node)?;
     let decode_args = decode_args(&common, &node)?;
     let decode_props = decode_props(&common, &node)?;
-    let decode_children_normal = decode_children(
-        &common, &children, Some(quote!(#node.span())))?;
+    let decode_children_normal = decode_children(&common, &children, Some(quote!(#node.span())))?;
     let assign_extra = assign_extra(&common)?;
 
     let all_fields = s.all_fields();
     let struct_val = if named {
-        let assignments = all_fields.iter()
-            .map(|f| f.as_assign_pair().unwrap());
+        let assignments = all_fields.iter().map(|f| f.as_assign_pair().unwrap());
         quote!(#s_name { #(#assignments,)* })
     } else {
-        let mut fields = all_fields.iter()
+        let mut fields = all_fields
+            .iter()
             .map(|f| (f.as_index().unwrap(), &f.tmp_name))
             .collect::<Vec<_>>();
         fields.sort_by_key(|(idx, _)| *idx);
-        assert_eq!(fields.iter().map(|(idx, _)| *idx).collect::<Vec<_>>(),
-                   (0..fields.len()).collect::<Vec<_>>(),
-                   "all tuple structure fields should be filled in");
+        assert_eq!(
+            fields.iter().map(|(idx, _)| *idx).collect::<Vec<_>>(),
+            (0..fields.len()).collect::<Vec<_>>(),
+            "all tuple structure fields should be filled in"
+        );
         let assignments = fields.iter().map(|(_, v)| v);
-        quote!{ #s_name(#(#assignments),*) }
+        quote! { #s_name(#(#assignments),*) }
     };
     let mut extra_traits = Vec::new();
-    let partial_compatible = s.spans.is_empty() &&
-        s.node_names.is_empty() &&
-        s.type_names.is_empty() &&
-        !s.has_arguments && (
-            s.properties.iter().all(|x| x.option || x.flatten) &&
-            s.var_props.is_none()
-        ) && (
-            s.children.iter().all(child_can_partial) &&
-            s.var_children.is_none()
-        );
+    let partial_compatible = s.spans.is_empty()
+        && s.node_names.is_empty()
+        && s.type_names.is_empty()
+        && !s.has_arguments
+        && (s.properties.iter().all(|x| x.option || x.flatten) && s.var_props.is_none())
+        && (s.children.iter().all(child_can_partial) && s.var_children.is_none());
     if partial_compatible {
         let node = syn::Ident::new("node", Span::mixed_site());
         let name = syn::Ident::new("name", Span::mixed_site());
@@ -111,8 +109,11 @@ pub fn emit_struct(s: &Struct, named: bool) -> syn::Result<TokenStream> {
             }
         });
     }
-    if !s.has_arguments && !s.has_properties &&
-        s.spans.is_empty() && s.node_names.is_empty() && s.type_names.is_empty()
+    if !s.has_arguments
+        && !s.has_properties
+        && s.spans.is_empty()
+        && s.node_names.is_empty()
+        && s.type_names.is_empty()
     {
         let decode_children = decode_children(&common, &children, None)?;
         extra_traits.push(quote! {
@@ -180,31 +181,34 @@ pub fn emit_new_type(s: &NewType) -> syn::Result<TokenStream> {
     })
 }
 
-pub(crate) fn decode_enum_item(s: &Common,
-    s_name: impl ToTokens, node: &syn::Ident, named: bool)
-    -> syn::Result<TokenStream>
-{
+pub(crate) fn decode_enum_item(
+    s: &Common,
+    s_name: impl ToTokens,
+    node: &syn::Ident,
+    named: bool,
+) -> syn::Result<TokenStream> {
     let children = syn::Ident::new("children", Span::mixed_site());
     let decode_args = decode_args(s, node)?;
     let decode_props = decode_props(s, node)?;
-    let decode_children = decode_children(s, &children,
-                                          Some(quote!(#node.span())))?;
+    let decode_children = decode_children(s, &children, Some(quote!(#node.span())))?;
     let assign_extra = assign_extra(s)?;
     let all_fields = s.object.all_fields();
     let struct_val = if named {
-        let assignments = all_fields.iter()
-            .map(|f| f.as_assign_pair().unwrap());
+        let assignments = all_fields.iter().map(|f| f.as_assign_pair().unwrap());
         quote!(#s_name { #(#assignments,)* })
     } else {
-        let mut fields = all_fields.iter()
+        let mut fields = all_fields
+            .iter()
             .map(|f| (f.as_index().unwrap(), &f.tmp_name))
             .collect::<Vec<_>>();
         fields.sort_by_key(|(idx, _)| *idx);
-        assert_eq!(fields.iter().map(|(idx, _)| *idx).collect::<Vec<_>>(),
-                   (0..fields.len()).collect::<Vec<_>>(),
-                   "all tuple structure fields should be filled in");
+        assert_eq!(
+            fields.iter().map(|(idx, _)| *idx).collect::<Vec<_>>(),
+            (0..fields.len()).collect::<Vec<_>>(),
+            "all tuple structure fields should be filled in"
+        );
         let assignments = fields.iter().map(|(_, v)| v);
-        quote!{ #s_name(#(#assignments),*) }
+        quote! { #s_name(#(#assignments),*) }
     };
     Ok(quote! {
         #decode_args
@@ -217,16 +221,16 @@ pub(crate) fn decode_enum_item(s: &Common,
     })
 }
 
-fn decode_value(val: &syn::Ident, ctx: &syn::Ident, mode: &DecodeMode,
-                optional: bool)
-    -> syn::Result<TokenStream>
-{
+fn decode_value(
+    val: &syn::Ident,
+    ctx: &syn::Ident,
+    mode: &DecodeMode,
+    optional: bool,
+) -> syn::Result<TokenStream> {
     match mode {
-        DecodeMode::Normal => {
-            Ok(quote!{
-                ::knus::traits::DecodeScalar::decode(#val, #ctx)
-            })
-        }
+        DecodeMode::Normal => Ok(quote! {
+            ::knus::traits::DecodeScalar::decode(#val, #ctx)
+        }),
         DecodeMode::Str if optional => {
             Ok(quote![{
                 if let Some(typ) = &#val.type_name {
@@ -282,36 +286,30 @@ fn decode_value(val: &syn::Ident, ctx: &syn::Ident, mode: &DecodeMode,
                 }
             }])
         }
-        DecodeMode::Bytes if optional => {
-            Ok(quote! {
-                if matches!(&*#val.literal, ::knus::ast::Literal::Null) {
-                    Ok(None)
-                } else {
-                    match ::knus::decode::bytes(#val, #ctx).try_into() {
-                        Ok(v) => Ok(Some(v)),
-                        Err(e) => {
-                            #ctx.emit_error(
-                                ::knus::errors::DecodeError::conversion(
-                                    &#val.literal, e));
-                            Ok(None)
-                        }
+        DecodeMode::Bytes if optional => Ok(quote! {
+            if matches!(&*#val.literal, ::knus::ast::Literal::Null) {
+                Ok(None)
+            } else {
+                match ::knus::decode::bytes(#val, #ctx).try_into() {
+                    Ok(v) => Ok(Some(v)),
+                    Err(e) => {
+                        #ctx.emit_error(
+                            ::knus::errors::DecodeError::conversion(
+                                &#val.literal, e));
+                        Ok(None)
                     }
                 }
-            })
-        }
-        DecodeMode::Bytes => {
-            Ok(quote! {
-                ::knus::decode::bytes(#val, #ctx).try_into()
-                .map_err(|e| ::knus::errors::DecodeError::conversion(
-                        &#val.literal, e))
-            })
-        }
+            }
+        }),
+        DecodeMode::Bytes => Ok(quote! {
+            ::knus::decode::bytes(#val, #ctx).try_into()
+            .map_err(|e| ::knus::errors::DecodeError::conversion(
+                    &#val.literal, e))
+        }),
     }
 }
 
-fn decode_specials(s: &Common, node: &syn::Ident)
-    -> syn::Result<TokenStream>
-{
+fn decode_specials(s: &Common, node: &syn::Ident) -> syn::Result<TokenStream> {
     let ctx = s.ctx;
     let spans = s.object.spans.iter().flat_map(|span| {
         let fld = &span.field.tmp_name;
@@ -388,8 +386,7 @@ fn decode_args(s: &Common, node: &syn::Ident) -> syn::Result<TokenStream> {
     for arg in &s.object.arguments {
         let fld = &arg.field.tmp_name;
         let val = syn::Ident::new("val", Span::mixed_site());
-        let decode_value = decode_value(&val, ctx, &arg.decode,
-                                        arg.option)?;
+        let decode_value = decode_value(&val, ctx, &arg.decode, arg.option)?;
         match (&arg.default, &arg.kind) {
             (None, ArgKind::Value { option: true }) => {
                 decoder.push(quote! {
@@ -413,7 +410,7 @@ fn decode_args(s: &Common, node: &syn::Ident) -> syn::Result<TokenStream> {
                     let #fld = #decode_value?;
                 });
             }
-            (Some(default_value), ArgKind::Value {..}) => {
+            (Some(default_value), ArgKind::Value { .. }) => {
                 let default = if let Some(expr) = default_value {
                     quote!(#expr)
                 } else {
@@ -450,9 +447,7 @@ fn decode_args(s: &Common, node: &syn::Ident) -> syn::Result<TokenStream> {
     Ok(quote! { #(#decoder)* })
 }
 
-fn decode_props(s: &Common, node: &syn::Ident)
-    -> syn::Result<TokenStream>
-{
+fn decode_props(s: &Common, node: &syn::Ident) -> syn::Result<TokenStream> {
     let mut declare_empty = Vec::new();
     let mut match_branches = Vec::new();
     let mut postprocess = Vec::new();
@@ -476,8 +471,7 @@ fn decode_props(s: &Common, node: &syn::Ident)
                 => {}
             });
         } else {
-            let decode_value = decode_value(&val, ctx, &prop.decode,
-                                            prop.option)?;
+            let decode_value = decode_value(&val, ctx, &prop.decode, prop.option)?;
             declare_empty.push(quote! {
                 let mut #fld = None;
                 let mut #seen_name = false;
@@ -566,10 +560,12 @@ fn decode_props(s: &Common, node: &syn::Ident)
     })
 }
 
-fn unwrap_fn(parent: &Common,
-             func: &syn::Ident, name: &syn::Ident, attrs: &FieldAttrs)
-    -> syn::Result<TokenStream>
-{
+fn unwrap_fn(
+    parent: &Common,
+    func: &syn::Ident,
+    name: &syn::Ident,
+    attrs: &FieldAttrs,
+) -> syn::Result<TokenStream> {
     let ctx = parent.ctx;
     let span_ty = parent.span_type;
     let mut bld = StructBuilder::new(
@@ -589,8 +585,7 @@ fn unwrap_fn(parent: &Common,
     let children = syn::Ident::new("children", Span::mixed_site());
     let decode_args = decode_args(&common, &node)?;
     let decode_props = decode_props(&common, &node)?;
-    let decode_children = decode_children(&common, &children,
-                                          Some(quote!(#node.span())))?;
+    let decode_children = decode_children(&common, &children, Some(quote!(#node.span())))?;
     Ok(quote! {
         let mut #func = |#node: &::knus::ast::SpannedNode<#span_ty>,
                          #ctx: &mut ::knus::decode::Context<#span_ty>|
@@ -606,10 +601,12 @@ fn unwrap_fn(parent: &Common,
     })
 }
 
-fn decode_node(common: &Common, child_def: &Child, in_partial: bool,
-               child: &syn::Ident)
-    -> syn::Result<TokenStream>
-{
+fn decode_node(
+    common: &Common,
+    child_def: &Child,
+    in_partial: bool,
+    child: &syn::Ident,
+) -> syn::Result<TokenStream> {
     let ctx = common.ctx;
     let fld = &child_def.field.tmp_name;
     let dest = if in_partial {
@@ -668,8 +665,10 @@ fn insert_child(s: &Common, node: &syn::Ident) -> syn::Result<TokenStream> {
                 => Ok(true),
             })
         } else if matches!(child_def.mode, ChildMode::Bool) {
-            let dup_err = format!("duplicate node `{}`, single node expected",
-                                  child_name.escape_default());
+            let dup_err = format!(
+                "duplicate node `{}`, single node expected",
+                child_name.escape_default()
+            );
             match_branches.push(quote! {
                 #child_name => {
                     ::knus::decode::check_flag_node(#node, #ctx);
@@ -684,8 +683,10 @@ fn insert_child(s: &Common, node: &syn::Ident) -> syn::Result<TokenStream> {
                 }
             });
         } else {
-            let dup_err = format!("duplicate node `{}`, single node expected",
-                                  child_name.escape_default());
+            let dup_err = format!(
+                "duplicate node `{}`, single node expected",
+                child_name.escape_default()
+            );
             let decode = decode_node(s, child_def, true, node)?;
             match_branches.push(quote! {
                 #child_name => {
@@ -707,9 +708,7 @@ fn insert_child(s: &Common, node: &syn::Ident) -> syn::Result<TokenStream> {
     })
 }
 
-fn insert_property(s: &Common, name: &syn::Ident, value: &syn::Ident)
-    -> syn::Result<TokenStream>
-{
+fn insert_property(s: &Common, name: &syn::Ident, value: &syn::Ident) -> syn::Result<TokenStream> {
     let ctx = s.ctx;
     let mut match_branches = Vec::with_capacity(s.object.children.len());
     for prop in &s.object.properties {
@@ -722,8 +721,7 @@ fn insert_property(s: &Common, name: &syn::Ident, value: &syn::Ident)
                 => Ok(true),
             });
         } else {
-            let decode_value = decode_value(value, ctx, &prop.decode,
-                                            prop.option)?;
+            let decode_value = decode_value(value, ctx, &prop.decode, prop.option)?;
             if prop.option {
                 match_branches.push(quote! {
                     #prop_name => {
@@ -749,10 +747,11 @@ fn insert_property(s: &Common, name: &syn::Ident, value: &syn::Ident)
     })
 }
 
-fn decode_children(s: &Common, children: &syn::Ident,
-                   err_span: Option<TokenStream>)
-    -> syn::Result<TokenStream>
-{
+fn decode_children(
+    s: &Common,
+    children: &syn::Ident,
+    err_span: Option<TokenStream>,
+) -> syn::Result<TokenStream> {
     let mut declare_empty = Vec::new();
     let mut match_branches = Vec::new();
     let mut postprocess = Vec::new();
@@ -831,7 +830,8 @@ fn decode_children(s: &Common, children: &syn::Ident,
                 });
                 let dup_err = format!(
                     "duplicate node `{}`, single node expected",
-                    child_name.escape_default());
+                    child_name.escape_default()
+                );
                 let decode = decode_node(s, child_def, false, &child)?;
                 match_branches.push(quote! {
                     #child_name => {
@@ -844,8 +844,7 @@ fn decode_children(s: &Common, children: &syn::Ident,
                         }
                     }
                 });
-                let req_msg = format!("child node `{}` is required",
-                                      child_name);
+                let req_msg = format!("child node `{}` is required", child_name);
                 if let Some(default_value) = &child_def.default {
                     let default = if let Some(expr) = default_value {
                         quote!(#expr)
@@ -879,7 +878,8 @@ fn decode_children(s: &Common, children: &syn::Ident,
             ChildMode::Bool => {
                 let dup_err = format!(
                     "duplicate node `{}`, single node expected",
-                    child_name.escape_default());
+                    child_name.escape_default()
+                );
                 declare_empty.push(quote! {
                     let mut #fld = false;
                 });
@@ -952,12 +952,10 @@ fn decode_children(s: &Common, children: &syn::Ident,
 }
 
 fn assign_extra(s: &Common) -> syn::Result<TokenStream> {
-    let items = s.object.extra_fields.iter().map(|fld| {
-        match fld.kind {
-            ExtraKind::Auto => {
-                let name = &fld.field.tmp_name;
-                quote!(let #name = ::std::default::Default::default();)
-            }
+    let items = s.object.extra_fields.iter().map(|fld| match fld.kind {
+        ExtraKind::Auto => {
+            let name = &fld.field.tmp_name;
+            quote!(let #name = ::std::default::Default::default();)
         }
     });
     Ok(quote!(#(#items)*))

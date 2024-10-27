@@ -6,10 +6,9 @@ use std::collections::HashMap;
 use std::default::Default;
 use std::fmt;
 
-use crate::ast::{Literal, BuiltinType, Value, SpannedNode};
+use crate::ast::{BuiltinType, Literal, SpannedNode, Value};
 use crate::errors::{DecodeError, ExpectedType};
-use crate::traits::{ErrorSpan, Decode};
-
+use crate::traits::{Decode, ErrorSpan};
 
 /// Context is passed through all the decode operations and can be used for:
 ///
@@ -50,30 +49,29 @@ pub fn bytes<S: ErrorSpan>(value: &Value<S>, ctx: &mut Context<S>) -> Vec<u8> {
     if let Some(typ) = &value.type_name {
         match typ.as_builtin() {
             Some(&BuiltinType::Base64) => {
-                #[cfg(feature="base64")] {
-                    use base64::{Engine, engine::general_purpose::STANDARD};
+                #[cfg(feature = "base64")]
+                {
+                    use base64::{engine::general_purpose::STANDARD, Engine};
                     match &*value.literal {
-                        Literal::String(s) => {
-                            match STANDARD.decode(s.as_bytes()) {
-                                Ok(vec) => vec,
-                                Err(e) => {
-                                    ctx.emit_error(DecodeError::conversion(
-                                        &value.literal, e));
-                                    Default::default()
-                                }
+                        Literal::String(s) => match STANDARD.decode(s.as_bytes()) {
+                            Ok(vec) => vec,
+                            Err(e) => {
+                                ctx.emit_error(DecodeError::conversion(&value.literal, e));
+                                Default::default()
                             }
-                        }
+                        },
                         _ => {
-                            ctx.emit_error(DecodeError::scalar_kind(
-                                Kind::String, &value.literal));
+                            ctx.emit_error(DecodeError::scalar_kind(Kind::String, &value.literal));
                             Default::default()
                         }
                     }
                 }
-                #[cfg(not(feature="base64"))] {
+                #[cfg(not(feature = "base64"))]
+                {
                     ctx.emit_error(DecodeError::unsupported(
-                            &value.literal,
-                            "base64 support is not compiled in"));
+                        &value.literal,
+                        "base64 support is not compiled in",
+                    ));
                     Default::default()
                 }
             }
@@ -91,8 +89,7 @@ pub fn bytes<S: ErrorSpan>(value: &Value<S>, ctx: &mut Context<S>) -> Vec<u8> {
         match &*value.literal {
             Literal::String(s) => s.as_bytes().to_vec(),
             _ => {
-                ctx.emit_error(DecodeError::scalar_kind(
-                    Kind::String, &value.literal));
+                ctx.emit_error(DecodeError::scalar_kind(Kind::String, &value.literal));
                 Default::default()
             }
         }
@@ -105,47 +102,46 @@ pub fn bytes<S: ErrorSpan>(value: &Value<S>, ctx: &mut Context<S>) -> Vec<u8> {
 ///
 /// Used internally by `#[knus(child)] x: bool,`. But can be used
 /// manually for implementing [`DecodeScalar`](crate::traits::DecodeScalar).
-pub fn check_flag_node<S: ErrorSpan>(
-    node: &SpannedNode<S>, ctx: &mut Context<S>)
-{
+pub fn check_flag_node<S: ErrorSpan>(node: &SpannedNode<S>, ctx: &mut Context<S>) {
     for arg in &node.arguments {
         ctx.emit_error(DecodeError::unexpected(
-                &arg.literal, "argument",
-                "unexpected argument"));
+            &arg.literal,
+            "argument",
+            "unexpected argument",
+        ));
     }
     for name in node.properties.keys() {
         ctx.emit_error(DecodeError::unexpected(
-            name, "property",
-            format!("unexpected property `{}`",
-                    name.escape_default())));
+            name,
+            "property",
+            format!("unexpected property `{}`", name.escape_default()),
+        ));
     }
     if let Some(children) = &node.children {
         for child in children.iter() {
-            ctx.emit_error(
-                DecodeError::unexpected(
-                    child, "node",
-                    format!("unexpected node `{}`",
-                        child.node_name.escape_default())
-                ));
+            ctx.emit_error(DecodeError::unexpected(
+                child,
+                "node",
+                format!("unexpected node `{}`", child.node_name.escape_default()),
+            ));
         }
     }
 }
 
 /// Parse single KDL node from AST
 pub fn node<T, S>(ast: &SpannedNode<S>) -> Result<T, Vec<DecodeError<S>>>
-    where T: Decode<S>,
-          S: ErrorSpan,
+where
+    T: Decode<S>,
+    S: ErrorSpan,
 {
     let mut ctx = Context::new();
     match Decode::decode_node(ast, &mut ctx) {
-        Ok(_) if ctx.has_errors() => {
-            Err(ctx.into_errors())
-        }
+        Ok(_) if ctx.has_errors() => Err(ctx.into_errors()),
         Err(e) => {
             ctx.emit_error(e);
             Err(ctx.into_errors())
         }
-        Ok(v) => Ok(v)
+        Ok(v) => Ok(v),
     }
 }
 
@@ -189,7 +185,8 @@ impl<S: ErrorSpan> Context<S> {
     ///
     /// Returns a value previously set in context
     pub fn get<T: 'static>(&self) -> Option<&T> {
-        self.extensions.get(&TypeId::of::<T>())
+        self.extensions
+            .get(&TypeId::of::<T>())
             .and_then(|b| b.downcast_ref())
     }
 }
@@ -202,8 +199,8 @@ impl fmt::Display for Kind {
 
 impl From<&'_ Literal> for Kind {
     fn from(lit: &Literal) -> Kind {
-        use Literal as L;
         use Kind as K;
+        use Literal as L;
         match lit {
             L::Int(_) => K::Int,
             L::Decimal(_) => K::Decimal,
