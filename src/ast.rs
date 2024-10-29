@@ -27,7 +27,7 @@ pub type SpannedName<S> = Spanned<Box<str>, S>;
 pub type SpannedNode<S> = Spanned<Node<S>, S>;
 
 /// Single node of the KDL document
-#[derive(Debug, Clone)]
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default)]
 #[cfg_attr(feature = "minicbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct Node<S> {
     /// A type name if specified in parenthesis
@@ -48,7 +48,7 @@ pub struct Node<S> {
 }
 
 /// KDL document root
-#[derive(Debug, Clone)]
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default)]
 #[cfg_attr(feature = "minicbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct Document<S> {
     /// Nodes of the document
@@ -57,7 +57,7 @@ pub struct Document<S> {
 }
 
 /// Possible integer radices described by the KDL specification
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default)]
 #[cfg_attr(feature = "minicbor", derive(minicbor::Encode, minicbor::Decode))]
 #[cfg_attr(feature = "minicbor", cbor(index_only))]
 pub enum Radix {
@@ -68,6 +68,7 @@ pub enum Radix {
     #[cfg_attr(feature = "minicbor", n(8))]
     Oct,
     /// Decimal (Base 10)
+    #[default]
     #[cfg_attr(feature = "minicbor", n(10))]
     Dec,
     /// Hexadecimal (Base 16)
@@ -76,7 +77,7 @@ pub enum Radix {
 }
 
 /// Potentially unlimited size integer value
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default)]
 #[cfg_attr(feature = "minicbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct Integer(
     #[cfg_attr(feature = "minicbor", n(0))] pub Radix,
@@ -84,13 +85,13 @@ pub struct Integer(
 );
 
 /// Potentially unlimited precision decimal value
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default)]
 #[cfg_attr(feature = "minicbor", derive(minicbor::Encode, minicbor::Decode))]
 #[cfg_attr(feature = "minicbor", cbor(transparent))]
 pub struct Decimal(#[cfg_attr(feature = "minicbor", n(0))] pub Box<str>);
 
 /// Possibly typed KDL scalar value
-#[derive(Debug, Clone)]
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default)]
 #[cfg_attr(feature = "minicbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct Value<S> {
     /// A type name if specified in parenthesis
@@ -102,10 +103,10 @@ pub struct Value<S> {
 }
 
 /// Type identifier
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub struct TypeName(TypeNameInner);
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 enum TypeNameInner {
     Builtin(BuiltinType),
     Custom(Box<str>),
@@ -114,8 +115,10 @@ enum TypeNameInner {
 /// Known type identifiers described by the KDL specification — there are more
 /// types defined in the specification than this enum captures, so this enum is
 /// `non_exhaustive` for now.
+// MISSING: It doesn't really make sense to pick a "default" type here, so the
+// `Default` implementation is intentionally missing
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum BuiltinType {
     /// `u8`: 8-bit unsigned integer type
     U8,
@@ -146,10 +149,11 @@ pub enum BuiltinType {
 }
 
 /// Scalar KDL value
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default)]
 #[cfg_attr(feature = "minicbor", derive(minicbor::Encode, minicbor::Decode))]
 pub enum Literal {
     /// Null value
+    #[default]
     #[cfg_attr(feature = "minicbor", n(0))]
     Null,
     /// Boolean value

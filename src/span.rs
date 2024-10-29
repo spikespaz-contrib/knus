@@ -21,7 +21,7 @@ use crate::traits;
 pub use miette::SourceSpan as ErrorSpan;
 
 /// Wraps the structure to keep source code span, but also dereference to T
-#[derive(Clone, Copy, Debug)]
+#[derive(Copy, Clone, Debug, Default)]
 #[cfg_attr(feature = "minicbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct Spanned<T, S> {
     #[cfg_attr(feature = "minicbor", n(0))]
@@ -31,7 +31,7 @@ pub struct Spanned<T, S> {
 }
 
 /// Normal byte offset span
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default)]
 #[cfg_attr(feature = "minicbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct Span(
     #[cfg_attr(feature = "minicbor", n(0))] pub usize,
@@ -40,7 +40,7 @@ pub struct Span(
 
 /// Line and column position of the datum in the source code
 // TODO(tailhook) optimize Eq to check only offset
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default)]
 #[cfg_attr(feature = "minicbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct LinePos {
     /// Zero-based byte offset
@@ -55,7 +55,7 @@ pub struct LinePos {
 }
 
 /// Span with line and column number
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default)]
 #[cfg_attr(feature = "minicbor", derive(minicbor::Encode, minicbor::Decode))]
 pub struct LineSpan(
     #[cfg_attr(feature = "minicbor", n(0))] pub LinePos,
