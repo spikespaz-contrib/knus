@@ -526,7 +526,10 @@ impl<S: ErrorSpan> DecodeError<S> {
 }
 
 /// Wrapper around expected type that is used in [`DecodeError::TypeName`].
-#[derive(Debug)]
+// MISSING: The `Default` implementation is missing, since there is no clear
+// default here — really, this should be an enum, since `types` only makes sense
+// when `no_type` is `false`. This needs a refactor at some point!
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub struct ExpectedType {
     types: Vec<TypeName>,
     no_type: bool,
@@ -585,7 +588,7 @@ impl fmt::Display for ExpectedType {
 /// Declares kind of value expected for the scalar value
 ///
 /// Use [`Kind`](crate::decode::Kind) and `.into()` to create this value.
-#[derive(Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default)]
 pub struct ExpectedKind(Kind);
 
 impl From<Kind> for ExpectedKind {

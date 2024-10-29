@@ -14,7 +14,7 @@ use crate::traits::{Decode, ErrorSpan};
 ///
 /// 1. To emit error and proceed (so multiple errors presented to user)
 /// 2. To store and retrieve data in decoders of nodes, scalars and spans
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Context<S: ErrorSpan> {
     errors: Vec<DecodeError<S>>,
     extensions: HashMap<TypeId, Box<dyn Any>>,
@@ -23,7 +23,7 @@ pub struct Context<S: ErrorSpan> {
 /// Scalar value kind
 ///
 /// Currently used only for error reporting
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default)]
 pub enum Kind {
     /// An unquoted integer value, signed or unsigned. Having no decimal point.
     /// Can be of virtually unlimited length. Can be expressed in binary, octal,
@@ -38,6 +38,7 @@ pub enum Kind {
     /// A boolean value of `true` or `false`
     Bool,
     /// The null value (usually corresponds to `None` in Rust)
+    #[default]
     Null,
 }
 
