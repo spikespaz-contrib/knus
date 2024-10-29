@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Implemented common `std` library traits for all public types (#5)
+
 ### Changed
 
 - Made the fields of `knus::ast::Integer` and `knus::ast::Decimal` public (#1)
