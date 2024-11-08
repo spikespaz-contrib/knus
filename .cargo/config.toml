@@ -2,4 +2,4 @@
 linker = "rust-lld"
 # NOTE: `rustdoc` doesn't currently respect the `linker` setting — keep an eye
 # on this issue: https://github.com/rust-lang/rust/issues/125657
-rustdocflags = ["-Clink-arg=-fuse-ld=/Users/runner/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/gcc-ld/ld64.lld"]
+rustdocflags = ["-Clink-arg=-fuse-ld=lld"]
