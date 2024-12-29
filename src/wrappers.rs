@@ -9,7 +9,10 @@ use crate::span::Span;
 use crate::traits::{self, DecodeChildren};
 
 /// Parse KDL text and return AST
-pub fn parse_ast<S: traits::Span>(file_name: &str, text: &str) -> Result<Document<S>, Error> {
+pub fn parse_ast<S: traits::Span>(
+    file_name: impl AsRef<str>,
+    text: &str,
+) -> Result<Document<S>, Error> {
     grammar::document()
         .parse(S::stream(text))
         .map_err(|errors| Error {
@@ -19,7 +22,7 @@ pub fn parse_ast<S: traits::Span>(file_name: &str, text: &str) -> Result<Documen
 }
 
 /// Parse KDL text and decode Rust object
-pub fn parse<T>(file_name: &str, text: &str) -> Result<T, Error>
+pub fn parse<T>(file_name: impl AsRef<str>, text: &str) -> Result<T, Error>
 where
     T: DecodeChildren<Span>,
 {
@@ -28,13 +31,17 @@ where
 
 /// Parse KDL text and decode Rust object providing extra context for the
 /// decoder
-pub fn parse_with_context<T, S, F>(file_name: &str, text: &str, set_ctx: F) -> Result<T, Error>
+pub fn parse_with_context<T, S, F>(
+    file_name: impl AsRef<str>,
+    text: &str,
+    set_ctx: F,
+) -> Result<T, Error>
 where
     F: FnOnce(&mut Context<S>),
     T: DecodeChildren<S>,
     S: traits::Span,
 {
-    let ast = parse_ast(file_name, text)?;
+    let ast = parse_ast(file_name.as_ref(), text)?;
 
     let mut ctx = Context::new();
     set_ctx(&mut ctx);
