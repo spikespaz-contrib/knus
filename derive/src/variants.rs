@@ -48,7 +48,7 @@ pub fn emit_enum(e: &Enum) -> syn::Result<TokenStream> {
         {
             fn decode_node(#node: &::knus::ast::SpannedNode<#span_ty>,
                            #ctx: &mut ::knus::decode::Context<#span_ty>)
-                -> Result<Self, ::knus::errors::DecodeError<#span_ty>>
+                -> ::std::result::Result<Self, ::knus::errors::DecodeError<#span_ty>>
             {
                 #decode
             }
