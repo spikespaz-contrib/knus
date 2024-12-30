@@ -94,7 +94,7 @@ pub fn emit_struct(s: &Struct, named: bool) -> syn::Result<TokenStream> {
                 fn insert_child(&mut self,
                     #node: &::knus::ast::SpannedNode<#span_ty>,
                     #ctx: &mut ::knus::decode::Context<#span_ty>)
-                    -> Result<bool, ::knus::errors::DecodeError<#span_ty>>
+                    -> ::std::result::Result<bool, ::knus::errors::DecodeError<#span_ty>>
                 {
                     #insert_child
                 }
@@ -102,7 +102,7 @@ pub fn emit_struct(s: &Struct, named: bool) -> syn::Result<TokenStream> {
                     #name: &::knus::span::Spanned<Box<str>, #span_ty>,
                     #value: &::knus::ast::Value<#span_ty>,
                     #ctx: &mut ::knus::decode::Context<#span_ty>)
-                    -> Result<bool, ::knus::errors::DecodeError<#span_ty>>
+                    -> ::std::result::Result<bool, ::knus::errors::DecodeError<#span_ty>>
                 {
                     #insert_property
                 }
@@ -124,7 +124,7 @@ pub fn emit_struct(s: &Struct, named: bool) -> syn::Result<TokenStream> {
                 fn decode_children(
                     #children: &[::knus::ast::SpannedNode<#span_ty>],
                     #ctx: &mut ::knus::decode::Context<#span_ty>)
-                    -> Result<Self, ::knus::errors::DecodeError<#span_ty>>
+                    -> ::std::result::Result<Self, ::knus::errors::DecodeError<#span_ty>>
                 {
                     #decode_children
                     #assign_extra
@@ -140,7 +140,7 @@ pub fn emit_struct(s: &Struct, named: bool) -> syn::Result<TokenStream> {
         {
             fn decode_node(#node: &::knus::ast::SpannedNode<#span_ty>,
                            #ctx: &mut ::knus::decode::Context<#span_ty>)
-                -> Result<Self, ::knus::errors::DecodeError<#span_ty>>
+                -> ::std::result::Result<Self, ::knus::errors::DecodeError<#span_ty>>
             {
                 #decode_specials
                 #decode_args
@@ -164,7 +164,7 @@ pub fn emit_new_type(s: &NewType) -> syn::Result<TokenStream> {
         {
             fn decode_node(#node: &::knus::ast::SpannedNode<S>,
                            #ctx: &mut ::knus::decode::Context<S>)
-                -> Result<Self, ::knus::errors::DecodeError<S>>
+                -> ::std::result::Result<Self, ::knus::errors::DecodeError<S>>
             {
                 if #node.arguments.len() > 0 ||
                     #node.properties.len() > 0 ||
@@ -433,7 +433,7 @@ fn decode_args(s: &Common, node: &syn::Ident) -> syn::Result<TokenStream> {
         decoder.push(quote! {
             let #fld = #iter_args.map(|#val| {
                 #decode_value
-            }).collect::<Result<_, _>>()?;
+            }).collect::<std::result::Result<_, _>>()?;
         });
     } else {
         decoder.push(quote! {
@@ -925,7 +925,7 @@ fn decode_children(
                 match &**#child.node_name {
                     #(#match_branches)*
                 }
-            }).collect::<Result<_, ::knus::errors::DecodeError<_>>>()?;
+            }).collect::<::std::result::Result<_, ::knus::errors::DecodeError<_>>>()?;
             #(#postprocess)*
         })
     } else {
@@ -945,7 +945,7 @@ fn decode_children(
                 match &**#child.node_name {
                     #(#match_branches)*
                 }
-            }).collect::<Result<(), ::knus::errors::DecodeError<_>>>()?;
+            }).collect::<::std::result::Result<(), ::knus::errors::DecodeError<_>>>()?;
             #(#postprocess)*
         })
     }

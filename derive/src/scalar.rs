@@ -99,7 +99,7 @@ pub fn emit_enum(e: &Enum) -> syn::Result<TokenStream> {
             fn raw_decode(val: &::knus::span::Spanned<
                           ::knus::ast::Literal, S>,
                           ctx: &mut ::knus::decode::Context<S>)
-                -> Result<#e_name, ::knus::errors::DecodeError<S>>
+                -> ::std::result::Result<#e_name, ::knus::errors::DecodeError<S>>
             {
                 match &**val {
                     ::knus::ast::Literal::String(ref s) => {
